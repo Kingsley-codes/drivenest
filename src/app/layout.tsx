@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { PT_Serif, Montserrat, Outfit, Open_Sans } from "next/font/google";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import Navbar from "@/components/Navbar";
 
 export const metadata: Metadata = {
   title: "DriveNest",

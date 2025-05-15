@@ -34,14 +34,14 @@ export default function Navbar() {
                 onClick={() => setMenuOpen(!menuOpen)}
                 className="inline-flex items-center justify-center p-2 rounded-md text-white hover:text-white focus:outline-none"
               >
-                <FaBars className="block cursor-pointer golden h-6 w-6 m-2" />
+                <FaBars className="block cursor-pointer text-amber-400 h-6 w-6 m-2" />
               </button>
             </div>
 
             {/* Logo */}
             <div className="flex-shrink-0 flex items-center">
               <Link href="/" className="text-4xl font-pt-serif font-bold">
-                <span className="golden">Drive</span>
+                <span className="text-amber-400">Drive</span>
                 <span className="text-white">Nest</span>
               </Link>
             </div>
@@ -50,23 +50,26 @@ export default function Navbar() {
           {/* Desktop Navigation (hidden on mobile) */}
           <div className="hidden sm:block">
             <ul className="flex text-xl space-x-4">
-              <li className="px-3 py-2 text-white hover:bg-gray-700 rounded-md">
-                <Link href="/">Home</Link>
-              </li>
-              <li className="px-3 py-2 text-white hover:bg-gray-700 rounded-md">
+              <li className="px-3 py-2 hover:text-white hover:border-b-1 text-amber-400 hover:border-amber-300 transition-all duration-100 ease-in-out rounded-md">
                 <Link href="/collections">Garage</Link>
               </li>
-              <li className="px-3 py-2 text-white hover:bg-gray-700 rounded-md">
+              <li className="px-3 py-2 hover:text-white hover:border-b-1 text-amber-400 hover:border-amber-300 transition-all duration-100 ease-in-out rounded-md">
                 <Link href="/rentals">Rent a Car</Link>
               </li>
-              <li className="px-3 py-2 text-white hover:bg-gray-700 rounded-md">
+              <li className="px-3 py-2 hover:text-white hover:border-b-1 text-amber-400 hover:border-amber-300 transition-all duration-100 ease-in-out rounded-md">
                 <Link href="/sales">Buy a Car</Link>
               </li>
-              <li className="px-3 py-2 text-white hover:bg-gray-700 rounded-md">
+              <li className="px-3 py-2 hover:text-white hover:border-b-1 text-amber-400 hover:border-amber-300 transition-all duration-100 ease-in-out rounded-md">
                 <Link href="/contact">Contact</Link>
               </li>
-              <li className="px-3 py-2 text-white hover:bg-gray-700 rounded-md">
+              <li className="px-3 py-2 hover:text-white hover:border-b-1 text-amber-400 hover:border-amber-300 transition-all duration-100 ease-in-out rounded-md">
                 <Link href="/about">About</Link>
+              </li>
+              <li className="pl-3 pr-3 ml-9 py-2 mr-0 hover:text-white border-r-1 text-amber-400 border-amber-400 hover:border-b-1 hover:border-amber-300 transition-all duration-100 ease-in-out rounded-b-sm">
+                <Link href="/login">Login</Link>
+              </li>
+              <li className="pl-3 py-2 ml-0 hover:text-white border-l-1 text-amber-400 border-amber-400 hover:border-b-1 hover:border-amber-300 transition-all duration-100 ease-in rounded-b-sm">
+                <Link href="/register">Sign Up</Link>
               </li>
             </ul>
           </div>
@@ -91,39 +94,56 @@ export default function Navbar() {
               {/* Mobile menu links */}
               <Link
                 href="/collections"
-                className="block px-3 py-2 text-white hover:bg-gray-700 rounded-md"
+                className="block px-3 py-2 hover:text-white hover:border-l-4 hover:border-amber-400 text-amber-300 hover:bg-gray-700 rounded-md"
                 onClick={() => setMenuOpen(false)}
               >
                 Garage
               </Link>
               <Link
                 href="/rentals"
-                className="block px-3 py-2 text-white hover:bg-gray-700 rounded-md"
+                className="block px-3 py-2 hover:text-white hover:border-l-4 hover:border-amber-400 text-amber-300 hover:bg-gray-700 rounded-md"
                 onClick={() => setMenuOpen(false)}
               >
                 Rent a Car
               </Link>
               <Link
                 href="/sales"
-                className="block px-3 py-2 text-white hover:bg-gray-700 rounded-md"
+                className="block px-3 py-2 hover:text-white hover:border-l-4 hover:border-amber-400 text-amber-300 hover:bg-gray-700 rounded-md"
                 onClick={() => setMenuOpen(false)}
               >
                 Buy a Car
               </Link>
               <Link
                 href="/contact"
-                className="block px-3 py-2 text-white hover:bg-gray-700 rounded-md"
+                className="block px-3 py-2 hover:text-white hover:border-l-4 hover:border-amber-400 text-amber-300 hover:bg-gray-700 rounded-md"
                 onClick={() => setMenuOpen(false)}
               >
                 Contact
               </Link>
               <Link
                 href="/about"
-                className="block px-3 py-2 text-white hover:bg-gray-700 rounded-md"
+                className="block px-3 py-2 hover:text-white hover:border-l-4 hover:border-amber-400 text-amber-300 hover:bg-gray-700 rounded-md"
                 onClick={() => setMenuOpen(false)}
               >
                 About
               </Link>
+
+              <div className="flex mt-16">
+                <Link
+                  href="/login"
+                  className="block px-3 py-2 hover:text-white text-amber-300 border-r-1 border-amber-300 hover:border-b-1 hover:border-amber-400 transition-all duration-100 ease-in rounded-sm"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/register"
+                  className="block px-3 py-2 hover:text-white text-amber-300 border-l-1 border-amber-300 hover:border-b-1 hover:border-amber-400 transition-all duration-100 ease-in rounded-sm"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Sign Up
+                </Link>
+              </div>
             </div>
           </div>
         </div>
