@@ -1,237 +1,234 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 
-interface FormData {
-  username: string;
-  email: string;
-  password: string;
-  passwordConfirm: string;
-}
-
-interface Errors {
-  [key: string]: string | undefined;
-  general?: string;
-  username?: string;
-  email?: string;
-  password?: string;
-  passwordConfirm?: string;
-}
-
-interface CsrfTokenResponse {
-  csrfToken: string;
-}
-
-const SignupPage = () => {
-  const router = useRouter();
-  const [formData, setFormData] = useState<FormData>({
+export default function RegisterPage() {
+  const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
     passwordConfirm: "",
   });
-  const [errors, setErrors] = useState<Errors>({});
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setErrors({});
+    setError("");
 
     try {
-      // 1. Get CSRF token first
-      const {
-        data: { csrfToken },
-      } = await axios.get<CsrfTokenResponse>(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/csrf-token`
+      // First get CSRF token
+      const csrfResponse = await axios.get<{ csrfToken: string }>(
+        "/api/auth/csrf-token"
       );
+      const { csrfToken } = csrfResponse.data;
 
-      // 2. Submit registration data
-      await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/register`,
-        formData,
-        {
-          headers: {
-            "X-CSRF-Token": csrfToken,
-            "Content-Type": "application/json",
-          },
-          withCredentials: true,
-        }
-      );
-
-      // 3. Redirect to verification page on success
-      router.push({
-        pathname: "/verify-email",
-        query: { email: formData.email },
+      // Then submit form with CSRF token
+      await axios.post("/api/auth/register", formData, {
+        headers: {
+          "X-CSRF-Token": csrfToken,
+          "Content-Type": "application/json",
+        },
+        withCredentials: true,
       });
-    } catch (error) {
-      if (axios.isAxiosError<ErrorResponse>(error)) {
-        handleRegistrationError(error);
+
+      // Redirect to email verification page
+      router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        // Handle Axios error
+        setError(
+          err.response?.data?.message ||
+            (Array.isArray(err.response?.data?.errors) &&
+              err.response?.data?.errors[0]?.msg) ||
+            "Registration failed. Please try again."
+        );
+      } else if (err instanceof Error) {
+        // Handle generic errors
+        setError(err.message);
       } else {
-        // Handle non-Axios errors
-        setErrors({
-          general: "An unexpected error occurred. Please try again.",
-        });
+        // Handle unexpected error types
+        setError("Registration failed. Please try again.");
       }
     } finally {
       setIsLoading(false);
     }
   };
 
-  interface ValidationError {
-    param: string;
-    msg: string;
-  }
-
-  interface ErrorResponse {
-    errors?: ValidationError[];
-    message?: string;
-  }
-
-  const handleRegistrationError = (error: AxiosError<ErrorResponse>) => {
-    if (error.response?.data?.errors) {
-      // Format validation errors
-      const formattedErrors = error.response.data.errors.reduce(
-        (acc: Errors, err) => {
-          acc[err.param] = err.msg;
-          return acc;
-        },
-        {}
-      );
-      setErrors(formattedErrors);
-    } else {
-      // Generic error message
-      setErrors({
-        general:
-          error.response?.data?.message ||
-          "Registration failed. Please try again.",
-      });
-    }
-  };
-
-  const handleOAuthSignup = (provider: string) => {
-    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/${provider}`;
-  };
-
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <h1 className="auth-title">Create Your Account</h1>
-
-        {errors.general && (
-          <div className="auth-error-message">{errors.general}</div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-950 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md rounded-2xl w-full space-y-8 border border-amber-400">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-amber-400">
+            Create an Account
+          </h2>
+        </div>
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-500 p-4">
+            <div className="flex">
+              <div className="text-red-500">
+                <p className="text-sm">{error}</p>
+              </div>
+            </div>
+          </div>
         )}
+        <form className="m-8 p-4 space-y-6" onSubmit={handleSubmit}>
+          <input type="hidden" name="remember" defaultValue="true" />
 
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="form-group">
-            <label htmlFor="username">Username</label>
+          <div>
+            <label htmlFor="username" className="sr-only">
+              Username
+            </label>
             <input
               id="username"
-              type="text"
               name="username"
+              type="text"
+              autoComplete="username"
+              required
+              className="my-4 rounded-md relative block w-full px-3 py-2 border bg-gray-950
+                 border-amber-400 placeholder-amber-200 text-amber-400 focus:outline-none 
+                 focus:ring-amber-300 focus:border-amber-500 focus:z-10 sm:text-sm autofill:bg-gray-950 autofill:text-amber-400"
+              placeholder="Username"
               value={formData.username}
-              onChange={handleInputChange}
-              className={errors.username ? "input-error" : ""}
-              required
+              onChange={handleChange}
             />
-            {errors.username && (
-              <span className="error-text">{errors.username}</span>
-            )}
           </div>
 
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
+          <div>
+            <label htmlFor="email-address" className="sr-only">
+              Email address
+            </label>
             <input
-              id="email"
-              type="email"
+              id="email-address"
               name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              className={errors.email ? "input-error" : ""}
+              type="email"
+              autoComplete="email"
               required
+              className="my-4 rounded-md relative block w-full px-3 py-2 border bg-gray-950
+                 border-amber-400 placeholder-amber-200 text-amber-400 focus:outline-none 
+                 focus:ring-amber-300 focus:border-amber-500 focus:z-10 sm:text-sm autofill:bg-gray-950 autofill:text-amber-400"
+              placeholder="Email address"
+              value={formData.email}
+              onChange={handleChange}
             />
-            {errors.email && <span className="error-text">{errors.email}</span>}
           </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
+          <div>
+            <label htmlFor="password" className="sr-only">
+              Password
+            </label>
             <input
               id="password"
-              type="password"
               name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              className={errors.password ? "input-error" : ""}
-              required
-            />
-            {errors.password && (
-              <span className="error-text">{errors.password}</span>
-            )}
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="passwordConfirm">Confirm Password</label>
-            <input
-              id="passwordConfirm"
               type="password"
-              name="passwordConfirm"
-              value={formData.passwordConfirm}
-              onChange={handleInputChange}
-              className={errors.passwordConfirm ? "input-error" : ""}
+              autoComplete="new-password"
               required
+              className="relative block w-full px-3 py-2 border border-amber-400 placeholder-amber-200 
+              text-amber-400 rounded-md focus:outline-none autofill:bg-gray-950 autofill:text-amber-400 focus:ring-amber-300 focus:border-amber-500 focus:z-10 sm:text-sm"
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
             />
-            {errors.passwordConfirm && (
-              <span className="error-text">{errors.passwordConfirm}</span>
-            )}
           </div>
 
-          <button type="submit" className="auth-button" disabled={isLoading}>
-            {isLoading ? "Creating Account..." : "Sign Up"}
-          </button>
+          <div>
+            <label htmlFor="password-confirm" className="sr-only">
+              Confirm Password
+            </label>
+            <input
+              id="password-confirm"
+              name="passwordConfirm"
+              type="password"
+              autoComplete="new-password"
+              required
+              className="relative block w-full px-3 py-2 mb-3 border border-amber-400 placeholder-amber-200 
+              text-amber-400 rounded-md focus:outline-none autofill:bg-gray-950 autofill:text-amber-400 focus:ring-amber-300 focus:border-amber-500 focus:z-10 sm:text-sm"
+              placeholder="Confirm Password"
+              value={formData.passwordConfirm}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="text-sm">
+              Already have an account?
+              <Link
+                href="/login"
+                className="font-medium text-amber-400 pl-2 hover:text-amber-300"
+              >
+                Sign In
+              </Link>
+            </div>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              id="terms"
+              name="terms"
+              type="checkbox"
+              required
+              className="h-4 w-4 text-amber-400 focus:ring-amber-400 border-amber-300 rounded"
+            />
+            <label
+              htmlFor="terms"
+              className="ml-2 block text-sm text-amber-400"
+            >
+              I agree to the Terms and Conditions
+            </label>
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-gray-950 bg-amber-400 hover:bg-amber-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 ${
+                isLoading ? "opacity-75 cursor-not-allowed" : ""
+              }`}
+            >
+              {isLoading ? (
+                <>
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Registering...
+                </>
+              ) : (
+                "Register"
+              )}
+            </button>
+          </div>
         </form>
-
-        <div className="auth-divider">
-          <span>OR</span>
-        </div>
-
-        <div className="oauth-buttons">
-          <button
-            type="button"
-            className="oauth-button google"
-            onClick={() => handleOAuthSignup("google")}
-          >
-            Continue with Google
-          </button>
-          <button
-            type="button"
-            className="oauth-button facebook"
-            onClick={() => handleOAuthSignup("facebook")}
-          >
-            Continue with Facebook
-          </button>
-          <button
-            type="button"
-            className="oauth-button instagram"
-            onClick={() => handleOAuthSignup("instagram")}
-          >
-            Continue with Instagram
-          </button>
-        </div>
-
-        <div className="auth-footer">
-          Already have an account? <Link href="/login">Log in</Link>
-        </div>
       </div>
     </div>
   );
-};
-
-export default SignupPage;
+}

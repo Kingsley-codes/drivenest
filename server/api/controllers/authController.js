@@ -1,8 +1,8 @@
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import User from '../models/User.js';
-import sendEmail from '../utils/email.js';
+import User from '../models/userModel.js';
+import { sendEmail } from '../utils/email.js';
 import passport from 'passport';
 
 // Utility functions
@@ -78,6 +78,13 @@ export const registerUser = async (req, res, next) => {
             });
         }
 
+        if (req.body.password !== req.body.passwordConfirm) {
+            return res.status(400).json({
+                status: 'fail',
+                message: 'Passwords do not match'
+            });
+        }
+
         // Hash password before user creation
         req.body.password = await hashPassword(req.body.password);
         req.body.passwordConfirm = undefined;
@@ -150,10 +157,7 @@ export const verifyEmail = async (req, res, next) => {
     }
 };
 
-// OAuth controllers
-export const googleAuth = passport.authenticate('google', {
-    scope: ['profile', 'email']
-});
+// OAuth callback controllers
 
 export const googleAuthCallback = (req, res, next) => {
     passport.authenticate('google', {
@@ -165,9 +169,6 @@ export const googleAuthCallback = (req, res, next) => {
     })(req, res, next);
 };
 
-export const facebookAuth = passport.authenticate('facebook', {
-    scope: ['email']
-});
 
 export const facebookAuthCallback = (req, res, next) => {
     passport.authenticate('facebook', {
@@ -179,17 +180,6 @@ export const facebookAuthCallback = (req, res, next) => {
     })(req, res, next);
 };
 
-export const instagramAuth = passport.authenticate('instagram');
-
-export const instagramAuthCallback = (req, res, next) => {
-    passport.authenticate('instagram', {
-        failureRedirect: '/login',
-        session: false
-    }, (err, user) => {
-        if (err) return next(err);
-        createSendToken(user, 200, req, res);
-    })(req, res, next);
-};
 
 // Login controller
 export const loginUser = async (req, res, next) => {
@@ -227,11 +217,7 @@ export const loginUser = async (req, res, next) => {
 export default {
     registerUser,
     verifyEmail,
-    googleAuth,
     googleAuthCallback,
-    facebookAuth,
     facebookAuthCallback,
-    instagramAuth,
-    instagramAuthCallback,
     loginUser
 };

@@ -1,10 +1,9 @@
 import express from 'express';
 import authController from '../controllers/authController.js';
-import validateRegister from '../middlewares/validation.js';
+import { validateRegister, validateLogin } from '../middlewares/validation.js';
 import rateLimit from 'express-rate-limit';
 import passport from 'passport';
 import csrf from 'csurf';
-import { validateLogin } from '../middlewares/validation.js';
 
 
 const router = express.Router();
@@ -19,25 +18,49 @@ const registerLimiter = rateLimit({
 // CSRF protection
 const csrfProtection = csrf({ cookie: true });
 
-// Routes
+// CSRF Token Endpoint
+router.get('/csrf-token', csrfProtection, (req, res) => {
+    res.json({ csrfToken: req.csrfToken() });
+});
+
+// User Registration
 router.post(
     '/register',
     csrfProtection,
     registerLimiter,
-    validation.validateRegister,
-    authController.register
+    validateRegister,
+    authController.registerUser
 );
 
+// Email Verification
 router.get('/verify-email/:token', authController.verifyEmail);
 
-// OAuth routes
-router.get('/auth/google', authController.googleAuth);
-router.get('/auth/google/callback', authController.googleAuthCallback);
+// Login
+router.post('/login', validateLogin, authController.loginUser);
 
-router.get('/auth/facebook', authController.facebookAuth);
-router.get('/auth/facebook/callback', authController.facebookAuthCallback);
 
-router.get('/auth/instagram', authController.instagramAuth);
-router.get('/auth/instagram/callback', authController.instagramAuthCallback);
+// Google OAuth
+router.get(
+    '/google',
+    passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+router.get(
+    '/google/callback',
+    passport.authenticate('google', { failureRedirect: '/login', session: false }),
+    authController.googleAuthCallback
+);
+
+// Facebook OAuth
+router.get(
+    '/facebook',
+    passport.authenticate('facebook', { scope: ['email'] })
+);
+
+router.get(
+    '/facebook/callback',
+    passport.authenticate('facebook', { failureRedirect: '/login', session: false }),
+    authController.facebookAuthCallback
+);
 
 export default router;

@@ -6,6 +6,7 @@ import helmet from "helmet";
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser'
 import passport from 'passport';
+import router from './api/routes/index.js';
 
 
 
@@ -58,7 +59,7 @@ app.prepare().then(async () => {
     }
 
     // Define API routes
-
+    server.use(router);
 
 
     server.get("/api/hello", (req, res) => {
