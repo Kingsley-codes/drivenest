@@ -10,15 +10,31 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "axios": "^1.9.0",
+    "bcryptjs": "^3.0.2",
     "clsx": "^2.1.1",
+    "cookie-parser": "^1.4.7",
+    "csrf": "^3.1.0",
     "dotenv": "^16.5.0",
     "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "express-validator": "^7.2.1",
+    "helmet": "^8.1.0",
+    "js-cookie": "^3.0.5",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.14.2",
     "next": "15.3.2",
+    "next-cloudinary": "^6.16.0",
+    "nodemailer": "^7.0.3",
+    "passport": "^0.7.0",
+    "passport-facebook": "^3.0.0",
+    "passport-google-oauth20": "^2.0.0",
+    "passport-instagram": "^1.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0",
-    "tailwind-merge": "^3.3.0"
+    "tailwind-merge": "^3.3.0",
+    "tanstack": "^1.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

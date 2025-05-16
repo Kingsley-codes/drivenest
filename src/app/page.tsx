@@ -4,7 +4,7 @@ export default function HomePage() {
   return (
     <main>
       <SecondNav />
-      <h1>Hello Next dev</h1>
+      <h1>Hear ruei dev</h1>
     </main>
   );
 }

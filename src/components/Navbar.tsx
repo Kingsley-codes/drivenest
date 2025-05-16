@@ -24,7 +24,7 @@ export default function Navbar() {
   }, [menuOpen]);
 
   return (
-    <nav className="bg-gray-950 shadow">
+    <nav className="bg-gray-950 shadow border-b-amber-400 border-b-2">
       <div className="max-w-7xl mx-auto px-2 sm:px-6 py-4 lg:px-8">
         <div className="relative flex items-center justify-between h-16">
           <div className="flex items-center">

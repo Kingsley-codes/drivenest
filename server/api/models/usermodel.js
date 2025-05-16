@@ -1,0 +1,81 @@
+import mongoose from "mongoose";
+
+const userSchema = new mongoose.Schema(
+    {
+        firstName: {
+            type: String,
+            required: true,
+        },
+        lastName: {
+            type: String,
+            required: true,
+        },
+        username: {
+            type: String,
+            required: [true, 'Username is required'],
+            unique: true,
+            trim: true,
+            minlength: [3, 'Username must be at least 3 characters'],
+            maxlength: [30, 'Username cannot exceed 30 characters']
+        },
+        email: {
+            type: String,
+            required: [true, 'Email is required'],
+            unique: true,
+            lowercase: true,
+            validate: [validator.isEmail, 'Please provide a valid email']
+        },
+        password: {
+            type: String,
+            required: [true, 'Password is required'],
+            minlength: [8, 'Password must be at least 8 characters'],
+            select: false
+        },
+        passwordConfirm: {
+            type: String,
+            required: [true, 'Please confirm your password'],
+            validate: {
+                validator: function (el) {
+                    return el === this.password;
+                },
+                message: 'Passwords do not match'
+            }
+        },
+        address: {
+            type: String,
+
+        },
+        isEmailVerified: {
+            type: Boolean,
+            default: false
+        },
+        emailVerificationToken: String,
+        emailVerificationExpires: Date,
+        oauthProviders: {
+            google: String,
+            facebook: String,
+            instagram: String
+        },
+        phone: {
+            type: String,
+
+        },
+        role: {
+            type: String,
+            enum: ["user", "admin"],
+            default: "user",
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now
+        },
+        updatedAt: Date
+    },
+    {
+        timestamps: true,
+    }
+);
+
+const User = mongoose.model("User", userSchema);
+
+export default User;

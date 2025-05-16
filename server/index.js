@@ -2,6 +2,10 @@ import express from 'express';
 import mongoose from "mongoose";
 import 'dotenv/config';
 import next from "next";
+import helmet from "helmet";
+import rateLimit from 'express-rate-limit';
+import cookieParser from 'cookie-parser'
+import passport from 'passport';
 
 
 
@@ -12,11 +16,37 @@ const handle = app.getRequestHandler();
 const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI;
 
+// Rate limiting configuration
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+    message: 'Too many requests from this IP, please try again later'
+});
+
 app.prepare().then(async () => {
     const server = express();
 
     // Middleware
     server.use(express.json());
+    server.use(express.urlencoded({ extended: true }));
+    server.use(cookieParser());
+    server.use(passport.initialize());
+
+
+    // Helmet middleware - PRODUCTION ONLY
+    if (process.env.NODE_ENV === 'development') {
+        server.use(
+            helmet({
+                contentSecurityPolicy: false,
+                crossOriginEmbedderPolicy: false,
+            })
+        );
+    } else {
+        server.use(helmet());
+    }
+
+    // Apply rate limiting to API routes
+    server.use('/api', limiter);
 
     // Connect to MongoDB Atlas
     try {

@@ -1,184 +1,237 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 import Link from "next/link";
+import axios, { AxiosError } from "axios";
 
-export default function SignupPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+interface FormData {
+  username: string;
+  email: string;
+  password: string;
+  passwordConfirm: string;
+}
+
+interface Errors {
+  [key: string]: string | undefined;
+  general?: string;
+  username?: string;
+  email?: string;
+  password?: string;
+  passwordConfirm?: string;
+}
+
+interface CsrfTokenResponse {
+  csrfToken: string;
+}
+
+const SignupPage = () => {
   const router = useRouter();
+  const [formData, setFormData] = useState<FormData>({
+    username: "",
+    email: "",
+    password: "",
+    passwordConfirm: "",
+  });
+  const [errors, setErrors] = useState<Errors>({});
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError("");
+    setErrors({});
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // 1. Get CSRF token first
+      const {
+        data: { csrfToken },
+      } = await axios.get<CsrfTokenResponse>(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/csrf-token`
+      );
 
-      // Validation
-      if (!email || !password || !confirmPassword) {
-        throw new Error("Please fill in all fields");
+      // 2. Submit registration data
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/register`,
+        formData,
+        {
+          headers: {
+            "X-CSRF-Token": csrfToken,
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+
+      // 3. Redirect to verification page on success
+      router.push({
+        pathname: "/verify-email",
+        query: { email: formData.email },
+      });
+    } catch (error) {
+      if (axios.isAxiosError<ErrorResponse>(error)) {
+        handleRegistrationError(error);
+      } else {
+        // Handle non-Axios errors
+        setErrors({
+          general: "An unexpected error occurred. Please try again.",
+        });
       }
-
-      if (password !== confirmPassword) {
-        throw new Error("Passwords do not match");
-      }
-
-      // On successful signup, redirect to home
-      router.push("/");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Signup failed");
     } finally {
       setIsLoading(false);
     }
   };
 
+  interface ValidationError {
+    param: string;
+    msg: string;
+  }
+
+  interface ErrorResponse {
+    errors?: ValidationError[];
+    message?: string;
+  }
+
+  const handleRegistrationError = (error: AxiosError<ErrorResponse>) => {
+    if (error.response?.data?.errors) {
+      // Format validation errors
+      const formattedErrors = error.response.data.errors.reduce(
+        (acc: Errors, err) => {
+          acc[err.param] = err.msg;
+          return acc;
+        },
+        {}
+      );
+      setErrors(formattedErrors);
+    } else {
+      // Generic error message
+      setErrors({
+        general:
+          error.response?.data?.message ||
+          "Registration failed. Please try again.",
+      });
+    }
+  };
+
+  const handleOAuthSignup = (provider: string) => {
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/${provider}`;
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-950 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md rounded-2xl w-full space-y-8 border border-amber-400">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-amber-400">
-            Create an Account
-          </h2>
-        </div>
-        {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4">
-            <div className="flex">
-              <div className="text-red-500">
-                <p className="text-sm">{error}</p>
-              </div>
-            </div>
-          </div>
+    <div className="auth-page">
+      <div className="auth-card">
+        <h1 className="auth-title">Create Your Account</h1>
+
+        {errors.general && (
+          <div className="auth-error-message">{errors.general}</div>
         )}
-        <form className="m-8 p-4 space-y-6" onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="email" className="sr-only">
-              Email address
-            </label>
+
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div className="form-group">
+            <label htmlFor="username">Username</label>
+            <input
+              id="username"
+              type="text"
+              name="username"
+              value={formData.username}
+              onChange={handleInputChange}
+              className={errors.username ? "input-error" : ""}
+              required
+            />
+            {errors.username && (
+              <span className="error-text">{errors.username}</span>
+            )}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
             <input
               id="email"
-              name="email"
               type="email"
-              autoComplete="email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              className={errors.email ? "input-error" : ""}
               required
-              className="my-4 rounded-md relative block w-full px-3 py-2 border bg-gray-950
-                 border-amber-400 placeholder-amber-200 text-amber-400 focus:outline-none 
-                 focus:ring-amber-300 focus:border-amber-500 focus:z-10 sm:text-sm autofill:bg-gray-950 autofill:text-amber-400"
-              placeholder="Email address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
             />
+            {errors.email && <span className="error-text">{errors.email}</span>}
           </div>
-          <div>
-            <label htmlFor="password" className="sr-only">
-              Password
-            </label>
+
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
             <input
               id="password"
+              type="password"
               name="password"
-              type="password"
-              autoComplete="new-password"
+              value={formData.password}
+              onChange={handleInputChange}
+              className={errors.password ? "input-error" : ""}
               required
-              className="relative block w-full px-3 py-2 border border-amber-400 placeholder-amber-200 
-              text-amber-400 rounded-md focus:outline-none autofill:bg-gray-950 autofill:text-amber-400 
-              focus:ring-amber-300 focus:border-amber-500 focus:z-10 sm:text-sm"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
             />
+            {errors.password && (
+              <span className="error-text">{errors.password}</span>
+            )}
           </div>
-          <div>
-            <label htmlFor="confirm-password" className="sr-only">
-              Confirm Password
-            </label>
+
+          <div className="form-group">
+            <label htmlFor="passwordConfirm">Confirm Password</label>
             <input
-              id="confirm-password"
-              name="confirm-password"
+              id="passwordConfirm"
               type="password"
-              autoComplete="new-password"
+              name="passwordConfirm"
+              value={formData.passwordConfirm}
+              onChange={handleInputChange}
+              className={errors.passwordConfirm ? "input-error" : ""}
               required
-              className="relative block w-full px-3 py-2 border border-amber-400 placeholder-amber-200 
-              text-amber-400 rounded-md focus:outline-none autofill:bg-gray-950 autofill:text-amber-400 
-              focus:ring-amber-300 focus:border-amber-500 focus:z-10 sm:text-sm"
-              placeholder="Confirm Password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
             />
+            {errors.passwordConfirm && (
+              <span className="error-text">{errors.passwordConfirm}</span>
+            )}
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="text-sm">
-              Already have an account?
-              <Link
-                href="/login"
-                className="font-medium text-amber-400 pl-2 hover:text-amber-300"
-              >
-                Sign In
-              </Link>
-            </div>
-          </div>
-
-          <div className="flex items-center">
-            <input
-              id="terms"
-              name="terms"
-              type="checkbox"
-              required
-              className="h-4 w-4 text-amber-400 focus:ring-amber-400 border-amber-300 rounded"
-            />
-            <label
-              htmlFor="terms"
-              className="ml-2 block text-sm text-amber-400"
-            >
-              I agree to the Terms and Conditions
-            </label>
-          </div>
-
-          <div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-gray-950 bg-amber-400 hover:bg-amber-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 ${
-                isLoading ? "opacity-75 cursor-not-allowed" : ""
-              }`}
-            >
-              {isLoading ? (
-                <>
-                  <svg
-                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Creating account...
-                </>
-              ) : (
-                "Sign Up"
-              )}
-            </button>
-          </div>
+          <button type="submit" className="auth-button" disabled={isLoading}>
+            {isLoading ? "Creating Account..." : "Sign Up"}
+          </button>
         </form>
+
+        <div className="auth-divider">
+          <span>OR</span>
+        </div>
+
+        <div className="oauth-buttons">
+          <button
+            type="button"
+            className="oauth-button google"
+            onClick={() => handleOAuthSignup("google")}
+          >
+            Continue with Google
+          </button>
+          <button
+            type="button"
+            className="oauth-button facebook"
+            onClick={() => handleOAuthSignup("facebook")}
+          >
+            Continue with Facebook
+          </button>
+          <button
+            type="button"
+            className="oauth-button instagram"
+            onClick={() => handleOAuthSignup("instagram")}
+          >
+            Continue with Instagram
+          </button>
+        </div>
+
+        <div className="auth-footer">
+          Already have an account? <Link href="/login">Log in</Link>
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default SignupPage;

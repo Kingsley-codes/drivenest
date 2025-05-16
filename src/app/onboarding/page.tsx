@@ -31,14 +31,14 @@ export default function OnboardingPage() {
           <form className="space-y-6">
             <div>
               <label
-                htmlFor="first-name"
+                htmlFor="firstName"
                 className="block text-sm font-medium text-gray-950"
               >
                 First Name
               </label>
               <input
                 type="text"
-                id="first-name"
+                id="firstName"
                 className="mt-1 block w-full border text-gray-950 border-gray-950
                  rounded-md py-2 px-3 focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm"
               />
@@ -46,14 +46,29 @@ export default function OnboardingPage() {
 
             <div>
               <label
-                htmlFor="last-name"
+                htmlFor="lastName"
                 className="block text-sm font-medium text-gray-950"
               >
                 Last Name
               </label>
               <input
                 type="text"
-                id="last-name"
+                id="lastName"
+                className="mt-1 block w-full border text-gray-950 border-gray-950
+                 rounded-md py-2 px-3 focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-gray-950"
+              >
+                Username
+              </label>
+              <input
+                type="text"
+                id="username"
                 className="mt-1 block w-full border text-gray-950 border-gray-950
                  rounded-md py-2 px-3 focus:outline-none focus:ring-gray-800 focus:border-gray-800 sm:text-sm"
               />
