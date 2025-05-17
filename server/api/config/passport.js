@@ -2,7 +2,7 @@ import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
 import { Strategy as InstagramStrategy } from 'passport-instagram';
-import User from '../models/User.js';
+import User from '../models/userModel.js';
 
 // Google OAuth Strategy
 passport.use(new GoogleStrategy({
@@ -77,35 +77,6 @@ passport.use(new FacebookStrategy({
                     }
                 });
             }
-        }
-
-        return done(null, user);
-    } catch (err) {
-        return done(err, null);
-    }
-}));
-
-// Instagram OAuth Strategy
-passport.use(new InstagramStrategy({
-    clientID: process.env.INSTAGRAM_CLIENT_ID,
-    clientSecret: process.env.INSTAGRAM_CLIENT_SECRET,
-    callbackURL: '/api/v1/auth/instagram/callback'
-}, async (accessToken, refreshToken, profile, done) => {
-    try {
-        let user = await User.findOne({ 'oauthProviders.instagram': profile.id });
-
-        if (!user) {
-            // Create user with generated credentials since Instagram doesn't provide email
-            user = await User.create({
-                username: profile.username + Math.floor(Math.random() * 1000),
-                email: `${profile.username}@instagram.user`,
-                password: 'oauth-provided',
-                passwordConfirm: 'oauth-provided',
-                isEmailVerified: false,
-                oauthProviders: {
-                    instagram: profile.id
-                }
-            });
         }
 
         return done(null, user);

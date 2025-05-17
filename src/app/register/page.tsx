@@ -4,6 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import axios from "axios";
+import { FcGoogle } from "react-icons/fc";
+import { AiOutlineFacebook } from "react-icons/ai";
+import { toast } from "react-toastify";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -12,9 +15,20 @@ export default function RegisterPage() {
     password: "",
     passwordConfirm: "",
   });
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+
+  const [error, setError] = useState(""); // State for form validation error
+  const [isLoading, setIsLoading] = useState(false); // State for loading spinner
+  const [passwordError, setPasswordError] = useState(""); // State for password validation error
   const router = useRouter();
+
+  const validatePassword = (password: string): string | null => {
+    const regex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!regex.test(password)) {
+      return "Password must contain 1 uppercase, 1 lowercase, 1 number, and 1 special character";
+    }
+    return null;
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -22,6 +36,30 @@ export default function RegisterPage() {
       ...prev,
       [name]: value,
     }));
+
+    // Validate password on typing
+    if (name === "password") {
+      const validationMessage = validatePassword(value);
+      if (validationMessage) {
+        setPasswordError(validationMessage);
+      } else if (
+        formData.passwordConfirm &&
+        value !== formData.passwordConfirm
+      ) {
+        setPasswordError("Passwords do not match");
+      } else {
+        setPasswordError("");
+      }
+    }
+
+    // Validate confirm password on typing
+    if (name === "passwordConfirm") {
+      if (value !== formData.password) {
+        setPasswordError("Passwords do not match");
+      } else {
+        setPasswordError("");
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,38 +68,31 @@ export default function RegisterPage() {
     setError("");
 
     try {
-      // First get CSRF token
-      const csrfResponse = await axios.get<{ csrfToken: string }>(
-        "/api/auth/csrf-token"
-      );
-      const { csrfToken } = csrfResponse.data;
-
-      // Then submit form with CSRF token
+      // Submit form data directly without CSRF token
       await axios.post("/api/auth/register", formData, {
         headers: {
-          "X-CSRF-Token": csrfToken,
           "Content-Type": "application/json",
         },
-        withCredentials: true,
+        withCredentials: true, // Include cookies (e.g. for sessions)
       });
 
       // Redirect to email verification page
       router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        // Handle Axios error
-        setError(
-          err.response?.data?.message ||
-            (Array.isArray(err.response?.data?.errors) &&
-              err.response?.data?.errors[0]?.msg) ||
-            "Registration failed. Please try again."
-        );
-      } else if (err instanceof Error) {
-        // Handle generic errors
-        setError(err.message);
+        const responseData = err.response?.data;
+
+        if (Array.isArray(responseData?.errors)) {
+          responseData.errors.forEach(
+            (error: { field: string; message: string }) => {
+              toast.error(`${error.field}: ${error.message}`);
+            }
+          );
+        } else {
+          toast.error(responseData?.message || "Registration failed.");
+        }
       } else {
-        // Handle unexpected error types
-        setError("Registration failed. Please try again.");
+        toast.error("Something went wrong.");
       }
     } finally {
       setIsLoading(false);
@@ -142,6 +173,9 @@ export default function RegisterPage() {
               value={formData.password}
               onChange={handleChange}
             />
+            {passwordError && (
+              <p className="text-red-500 text-sm">{passwordError}</p>
+            )}
           </div>
 
           <div>
@@ -160,6 +194,9 @@ export default function RegisterPage() {
               value={formData.passwordConfirm}
               onChange={handleChange}
             />
+            {passwordError && (
+              <p className="text-red-500 text-sm">{passwordError}</p>
+            )}
           </div>
 
           <div className="flex items-center justify-between">
@@ -226,6 +263,26 @@ export default function RegisterPage() {
                 "Register"
               )}
             </button>
+          </div>
+
+          <div className="text-center border-t mt-9 border-amber-300 pt-4">
+            <h2 className=" text-amber-400 py-3">Other Sign Up Options</h2>
+
+            <div className="flex justify-center space-x-4">
+              <Link href="/api/auth/google">
+                <button className="text-amber-400 hover:text-amber-300 px-3 py-1 border border-amber-400 rounded-lg space-x-2">
+                  <FcGoogle className="h-8 w-8 ml-3" />
+                  <p>Google</p>
+                </button>
+              </Link>
+
+              <Link href="/api/auth/facebook">
+                <button className="text-amber-400 hover:text-amber-300 py-1 px-1 border border-amber-400 rounded-lg space-x-2">
+                  <AiOutlineFacebook className="h-8 w-8 ml-5" />
+                  <p>Facebook</p>
+                </button>
+              </Link>
+            </div>
           </div>
         </form>
       </div>

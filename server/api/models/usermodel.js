@@ -6,11 +6,9 @@ const userSchema = new mongoose.Schema(
     {
         firstName: {
             type: String,
-            required: true,
         },
         lastName: {
             type: String,
-            required: true,
         },
         username: {
             type: String,
@@ -36,12 +34,6 @@ const userSchema = new mongoose.Schema(
         passwordConfirm: {
             type: String,
             required: [true, 'Please confirm your password'],
-            validate: {
-                validator: function (el) {
-                    return el === this.password;
-                },
-                message: 'Passwords do not match'
-            }
         },
         address: {
             type: String,

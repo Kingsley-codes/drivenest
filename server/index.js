@@ -6,7 +6,8 @@ import helmet from "helmet";
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser'
 import passport from 'passport';
-import router from './api/routes/index.js';
+import './api/config/passport.js'
+import authRouter from './api/routes/authRoutes.js';
 
 
 
@@ -28,9 +29,9 @@ app.prepare().then(async () => {
     const server = express();
 
     // Middleware
+    server.use(cookieParser());
     server.use(express.json());
     server.use(express.urlencoded({ extended: true }));
-    server.use(cookieParser());
     server.use(passport.initialize());
 
 
@@ -59,7 +60,7 @@ app.prepare().then(async () => {
     }
 
     // Define API routes
-    server.use(router);
+    server.use("/api/auth", authRouter);  // Register auth routes
 
 
     server.get("/api/hello", (req, res) => {
