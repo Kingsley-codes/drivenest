@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { GiCancel } from "react-icons/gi";
-import { FaBars, FaRegUser } from "react-icons/fa";
+import { FaBars, FaRegUser, FaChevronDown } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -10,10 +10,18 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Replace with your actual auth state
+
+  // Check auth status on component mount
+  useEffect(() => {
+    // Replace this with your actual authentication check
+    const token = localStorage.getItem("authToken"); // Example
+    setIsLoggedIn(!!token);
+  }, []);
 
   // Unified auth redirection handler
   const handleAuthNavigation = (targetPath: string) => {
-    // Store current path before redirecting to auth
     localStorage.setItem("preRegisterPath", pathname);
     router.push(targetPath);
   };
@@ -23,7 +31,15 @@ export default function Navbar() {
     handleAuthNavigation(targetPath);
   };
 
-  // Close menu when clicking outside
+  const handleLogout = () => {
+    // Perform logout operations
+    localStorage.removeItem("authToken"); // Example
+    setIsLoggedIn(false);
+    setUserDropdownOpen(false);
+    router.push("/");
+  };
+
+  // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -32,11 +48,17 @@ export default function Navbar() {
       ) {
         setMenuOpen(false);
       }
+      if (
+        userDropdownOpen &&
+        !(event.target as Element).closest(".user-dropdown")
+      ) {
+        setUserDropdownOpen(false);
+      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [menuOpen]);
+  }, [menuOpen, userDropdownOpen]);
 
   return (
     <nav className="bg-gray-950 shadow border-b-amber-400 border-b-2">
@@ -63,7 +85,7 @@ export default function Navbar() {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden sm:flex justify-between">
+          <div className="hidden sm:flex justify-between items-center">
             <ul className="flex text-xl space-x-4">
               <li className="px-3 py-2 hover:text-white hover:border-b-1 text-amber-400 hover:border-amber-300 transition-all duration-100 ease-in-out rounded-md">
                 <Link href="/collections">Garage</Link>
@@ -82,23 +104,60 @@ export default function Navbar() {
               </li>
             </ul>
 
-            <div className="flex items-center">
-              <button
-                onClick={() => handleAuthNavigation("/login")}
-                className="pl-3 pr-3 ml-9 py-2 mr-0 hover:text-white border-r-1 text-amber-400 border-amber-400 hover:border-b-1 hover:border-amber-300 transition-all duration-100 ease-in-out rounded-b-sm cursor-pointer"
-              >
-                Login
-              </button>
-              <button
-                onClick={() => handleAuthNavigation("/register")}
-                className="pl-3 py-2 ml-0 hover:text-white border-l-1 text-amber-400 border-amber-400 hover:border-b-1 hover:border-amber-300 transition-all duration-100 ease-in rounded-b-sm cursor-pointer"
-              >
-                Sign Up
-              </button>
+            <div className="flex items-center ml-4">
+              {!isLoggedIn ? (
+                <>
+                  <button
+                    onClick={() => handleAuthNavigation("/login")}
+                    className="pl-3 pr-3 py-2 hover:text-white border-r-1 text-amber-400 border-amber-400 hover:border-b-1 hover:border-amber-300 transition-all duration-100 ease-in-out rounded-b-sm cursor-pointer"
+                  >
+                    Login
+                  </button>
+                  <button
+                    onClick={() => handleAuthNavigation("/register")}
+                    className="pl-3 py-2 hover:text-white border-l-1 text-amber-400 border-amber-400 hover:border-b-1 hover:border-amber-300 transition-all duration-100 ease-in rounded-b-sm cursor-pointer"
+                  >
+                    Sign Up
+                  </button>
+                </>
+              ) : (
+                <div className="relative user-dropdown">
+                  <button
+                    onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                    className="flex items-center text-amber-400 hover:text-white transition-all duration-100 ease-in-out p-2 rounded-md"
+                  >
+                    <FaRegUser className="h-5 w-5 mr-1" />
+                    <FaChevronDown
+                      className={`h-3 w-3 transition-transform ${userDropdownOpen ? "transform rotate-180" : ""}`}
+                    />
+                  </button>
 
-              <button>
-                <FaRegUser className="hidden text-amber-400 h-6 w-6 m-2" />
-              </button>
+                  {userDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-gray-900 rounded-md shadow-lg py-1 z-50 border border-amber-400">
+                      <Link
+                        href="/dashboard"
+                        className="block px-4 py-2 text-amber-300 hover:text-white hover:bg-gray-800"
+                        onClick={() => setUserDropdownOpen(false)}
+                      >
+                        Dashboard
+                      </Link>
+                      <Link
+                        href="/orders"
+                        className="block px-4 py-2 text-amber-300 hover:text-white hover:bg-gray-800"
+                        onClick={() => setUserDropdownOpen(false)}
+                      >
+                        Orders
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="block w-full text-left px-4 py-2 text-amber-300 hover:text-white hover:bg-gray-800"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -155,22 +214,49 @@ export default function Navbar() {
               </Link>
 
               <div className="flex mt-16">
-                <button
-                  onClick={() => mobileMenuClick("/login")}
-                  className="block px-3 py-2 hover:text-white text-amber-300 border-r-1 border-amber-300 hover:border-b-1 hover:border-amber-400 transition-all duration-100 ease-in rounded-sm"
-                >
-                  Login
-                </button>
-                <button
-                  onClick={() => mobileMenuClick("/register")}
-                  className="block px-3 py-2 hover:text-white text-amber-300 border-l-1 border-amber-300 hover:border-b-1 hover:border-amber-400 transition-all duration-100 ease-in rounded-sm"
-                >
-                  Sign Up
-                </button>
-
-                <button>
-                  <FaRegUser className="hidden text-amber-400 h-6 w-6 m-2" />
-                </button>
+                {!isLoggedIn ? (
+                  <>
+                    <button
+                      onClick={() => mobileMenuClick("/login")}
+                      className="block px-3 py-2 hover:text-white text-amber-300 border-r-1 border-amber-300 hover:border-b-1 hover:border-amber-400 transition-all duration-100 ease-in rounded-sm"
+                    >
+                      Login
+                    </button>
+                    <button
+                      onClick={() => mobileMenuClick("/register")}
+                      className="block px-3 py-2 hover:text-white text-amber-300 border-l-1 border-amber-300 hover:border-b-1 hover:border-amber-400 transition-all duration-100 ease-in rounded-sm"
+                    >
+                      Sign Up
+                    </button>
+                  </>
+                ) : (
+                  <div className="w-full">
+                    <div className="border-t border-amber-400 my-2"></div>
+                    <Link
+                      href="/dashboard"
+                      className="block px-3 py-2 hover:text-white hover:border-l-4 hover:border-amber-400 text-amber-300 hover:bg-gray-700 rounded-md"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      href="/orders"
+                      className="block px-3 py-2 hover:text-white hover:border-l-4 hover:border-amber-400 text-amber-300 hover:bg-gray-700 rounded-md"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Orders
+                    </Link>
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setMenuOpen(false);
+                      }}
+                      className="block w-full text-left px-3 py-2 hover:text-white hover:border-l-4 hover:border-amber-400 text-amber-300 hover:bg-gray-700 rounded-md"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
