@@ -1,34 +1,48 @@
+// app/email-verified/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function EmailVerifiedPage() {
+  const [isClient, setIsClient] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState<"verifying" | "success" | "error">(
     "verifying"
   );
 
-  const verificationStatus = searchParams.get("status");
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
-    // Only run on client side
-    if (typeof window !== "undefined") {
-      if (verificationStatus === "success") {
-        setStatus("success");
+    if (!isClient) return;
 
-        const redirectPath = localStorage.getItem("preRegisterPath") || "/";
-        localStorage.removeItem("preRegisterPath");
+    const verificationStatus = searchParams.get("status");
 
-        setTimeout(() => {
-          router.push(redirectPath);
-        }, 2000);
-      } else {
-        setStatus("error");
-      }
+    if (verificationStatus === "success") {
+      setStatus("success");
+      const redirectPath = localStorage.getItem("preRegisterPath") || "/";
+      localStorage.removeItem("preRegisterPath");
+
+      setTimeout(() => {
+        router.push(redirectPath);
+      }, 2000);
+    } else {
+      setStatus("error");
     }
-  }, [verificationStatus, router]);
+  }, [isClient, searchParams, router]);
+
+  if (!isClient) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-950 px-4 py-12">
+        <div className="max-w-md w-full text-center">
+          <h2 className="text-amber-400 text-2xl mb-4">Loading...</h2>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-950 px-4 py-12">
