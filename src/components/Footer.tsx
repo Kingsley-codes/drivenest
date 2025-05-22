@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { IoLogoFacebook } from "react-icons/io";
 import { FiInstagram } from "react-icons/fi";
 import { FiTwitter } from "react-icons/fi";
 import { PiLinkedinLogoBold } from "react-icons/pi";
@@ -67,8 +66,8 @@ export default function Footer() {
         <p className="text-md py-2 text-amber-400 max-w-2xl mx-auto">
           DriveNest offers a premium selection of luxury and everyday cars for
           rent or purchase. Whether you're cruising in style or commuting with
-          ease, we’ve got the perfect ride for every road. Simple, reliable, and
-          tailored to your journey—DriveNest gets you there.
+          ease, we&apos;ve got the perfect ride for every road. Simple,
+          reliable, and tailored to your journey—DriveNest gets you there.
         </p>
 
         <h2 className="text-lg my-3 text-amber-400 font-semibold">

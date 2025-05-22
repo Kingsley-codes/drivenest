@@ -121,8 +121,8 @@ export default function SecondNav() {
                   category === "Model Categories"
                     ? "w-48"
                     : category === "EV Brands"
-                    ? "w-[400px]"
-                    : "w-[600px]"
+                      ? "w-[400px]"
+                      : "w-[600px]"
                 }`}
                 onMouseEnter={() => handleMouseEnter(category)}
                 onMouseLeave={handleMouseLeave}
@@ -132,7 +132,7 @@ export default function SecondNav() {
                   category === "Regular Brands" ? (
                     <div className="grid grid-cols-3 divide-x divide-gray-500">
                       {categories[category as keyof typeof categories].map(
-                        (item, index) => (
+                        (item) => (
                           <div key={item} className="p-3">
                             <Link
                               href={`/brands/${item

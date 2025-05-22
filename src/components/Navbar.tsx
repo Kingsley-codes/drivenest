@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { GiCancel } from "react-icons/gi";
-import { FaBars } from "react-icons/fa";
+import { FaBars, FaRegUser } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -63,7 +63,7 @@ export default function Navbar() {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden sm:block">
+          <div className="hidden sm:flex justify-between">
             <ul className="flex text-xl space-x-4">
               <li className="px-3 py-2 hover:text-white hover:border-b-1 text-amber-400 hover:border-amber-300 transition-all duration-100 ease-in-out rounded-md">
                 <Link href="/collections">Garage</Link>
@@ -80,19 +80,26 @@ export default function Navbar() {
               <li className="px-3 py-2 hover:text-white hover:border-b-1 text-amber-400 hover:border-amber-300 transition-all duration-100 ease-in-out rounded-md">
                 <Link href="/about">About</Link>
               </li>
-              <li
+            </ul>
+
+            <div className="flex items-center">
+              <button
                 onClick={() => handleAuthNavigation("/login")}
                 className="pl-3 pr-3 ml-9 py-2 mr-0 hover:text-white border-r-1 text-amber-400 border-amber-400 hover:border-b-1 hover:border-amber-300 transition-all duration-100 ease-in-out rounded-b-sm cursor-pointer"
               >
                 Login
-              </li>
-              <li
+              </button>
+              <button
                 onClick={() => handleAuthNavigation("/register")}
                 className="pl-3 py-2 ml-0 hover:text-white border-l-1 text-amber-400 border-amber-400 hover:border-b-1 hover:border-amber-300 transition-all duration-100 ease-in rounded-b-sm cursor-pointer"
               >
                 Sign Up
-              </li>
-            </ul>
+              </button>
+
+              <button>
+                <FaRegUser className="hidden text-amber-400 h-6 w-6 m-2" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -159,6 +166,10 @@ export default function Navbar() {
                   className="block px-3 py-2 hover:text-white text-amber-300 border-l-1 border-amber-300 hover:border-b-1 hover:border-amber-400 transition-all duration-100 ease-in rounded-sm"
                 >
                   Sign Up
+                </button>
+
+                <button>
+                  <FaRegUser className="hidden text-amber-400 h-6 w-6 m-2" />
                 </button>
               </div>
             </div>
