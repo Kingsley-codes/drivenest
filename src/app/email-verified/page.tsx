@@ -1,7 +1,5 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -15,18 +13,20 @@ export default function EmailVerifiedPage() {
   const verificationStatus = searchParams.get("status");
 
   useEffect(() => {
-    if (verificationStatus === "success") {
-      setStatus("success");
+    // Only run on client side
+    if (typeof window !== "undefined") {
+      if (verificationStatus === "success") {
+        setStatus("success");
 
-      // Get redirect path from localStorage or default to home
-      const redirectPath = localStorage.getItem("preRegisterPath") || "/";
-      localStorage.removeItem("preRegisterPath");
+        const redirectPath = localStorage.getItem("preRegisterPath") || "/";
+        localStorage.removeItem("preRegisterPath");
 
-      setTimeout(() => {
-        router.push(redirectPath);
-      }, 2000);
-    } else {
-      setStatus("error");
+        setTimeout(() => {
+          router.push(redirectPath);
+        }, 2000);
+      } else {
+        setStatus("error");
+      }
     }
   }, [verificationStatus, router]);
 
