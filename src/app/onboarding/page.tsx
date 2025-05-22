@@ -9,7 +9,7 @@ export default function OnboardingPage() {
             Welcome to Your Onboarding
           </h2>
           <p className="mt-2 text-sm text-gray-950">
-            Let's get you set up with your account
+            Let&apos;s get you set up with your account
           </p>
         </div>
 
