@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import axios from "axios";
 import { FcGoogle } from "react-icons/fc";
@@ -19,7 +19,9 @@ export default function RegisterPage() {
   const [error, setError] = useState(""); // State for form validation error
   const [isLoading, setIsLoading] = useState(false); // State for loading spinner
   const [passwordError, setPasswordError] = useState(""); // State for password validation error
+  const searchParams = useSearchParams();
   const router = useRouter();
+  const redirectPath = searchParams.get("redirect") || "/";
 
   const validatePassword = (password: string): string | null => {
     const regex =
@@ -77,7 +79,9 @@ export default function RegisterPage() {
       });
 
       // Redirect to email verification page
-      router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
+      router.push(
+        `/verify-email?email=${encodeURIComponent(formData.email)}&redirect=${encodeURIComponent(redirectPath)}`
+      );
     } catch (err) {
       if (axios.isAxiosError(err)) {
         const responseData = err.response?.data;
@@ -269,14 +273,18 @@ export default function RegisterPage() {
             <h2 className=" text-amber-400 py-3">Other Sign Up Options</h2>
 
             <div className="flex justify-center space-x-4">
-              <Link href="/api/auth/google">
+              <Link
+                href={`/api/auth/google?redirect=${encodeURIComponent(redirectPath)}`}
+              >
                 <button className="text-amber-400 hover:text-amber-300 px-3 py-1 border border-amber-400 rounded-lg space-x-2">
                   <FcGoogle className="h-8 w-8 ml-3" />
                   <p>Google</p>
                 </button>
               </Link>
 
-              <Link href="/api/auth/facebook">
+              <Link
+                href={`/api/auth/facebook?redirect=${encodeURIComponent(redirectPath)}`}
+              >
                 <button className="text-amber-400 hover:text-amber-300 py-1 px-1 border border-amber-400 rounded-lg space-x-2">
                   <AiOutlineFacebook className="h-8 w-8 ml-5" />
                   <p>Facebook</p>

@@ -25,7 +25,7 @@ authRouter.post(
 );
 
 // Email Verification
-authRouter.get('/verify-email/:token', authController.verifyEmail);
+authRouter.get('/email-verified/:token', authController.verifyEmail);
 
 // Login
 authRouter.post('/login', validateLogin, authController.loginUser);

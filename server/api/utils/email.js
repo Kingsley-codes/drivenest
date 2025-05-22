@@ -1,37 +1,27 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-export const sendEmail = async (options) => {
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+
+export const sendEmail = async ({ to, subject, html }) => {
     try {
-        // 1) Create transporter
-        const transporter = nodemailer.createTransport({
-            host: process.env.EMAIL_HOST,
-            port: process.env.EMAIL_PORT,
-            secure: process.env.EMAIL_PORT === '465', // true for 465, false for other ports
-            auth: {
-                user: process.env.EMAIL_USERNAME,
-                pass: process.env.EMAIL_PASSWORD,
-            },
-            tls: {
-                rejectUnauthorized: false // For self-signed certificates
-            }
+        const response = await resend.emails.send({
+            from: 'My App <onboarding@resend.dev>', // Dev sender
+            to,
+            subject,
+            html,
         });
 
-        // 2) Define email options
-        const mailOptions = {
-            from: `${process.env.EMAIL_FROM_NAME} <${process.env.EMAIL_FROM_ADDRESS}>`,
-            to: options.email,
-            subject: options.subject,
-            html: options.html,
-            text: options.text || '', // Fallback text version
-            attachments: options.attachments || []
-        };
+        if (response.error) {
+            console.error('Resend Error:', response.error);
+            throw new Error(response.error.message);
+        }
 
-        // 3) Send email
-        const info = await transporter.sendMail(mailOptions);
-        console.log(`Message sent: ${info.messageId}`);
-        return info;
+        return response.error;
+
     } catch (error) {
-        console.error('Error sending email:', error);
-        throw new Error('Email could not be sent');
+        console.error('Email Sending Failed:', error);
+        throw new Error('Failed to send email');
     }
 };

@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import User from '../models/userModel.js';
 import { sendEmail } from '../utils/email.js';
 import passport from 'passport';
+import { getVerificationEmailTemplate } from '../templates/verificationEmail.js';
 
 // Utility functions
 const signToken = (id) => {
@@ -99,24 +100,32 @@ export const registerUser = async (req, res, next) => {
         const verificationToken = createEmailVerificationToken(newUser);
         await newUser.save({ validateBeforeSave: false });
 
-        const verificationUrl = `${req.protocol}://${req.get('host')}/api/v1/auth/verify-email/${verificationToken}`;
+        const verificationUrl = `${req.protocol}://${req.get('host')}/api/auth/email-verified/${verificationToken}`;
 
         await sendEmail({
-            email: newUser.email,
+            to: newUser.email,
             subject: 'Verify your email address',
-            html: `
-        <h1>Welcome!</h1>
-        <p>Please verify your email:</p>
-        <a href="${verificationUrl}">Verify Email</a>
-        <p>Link expires in 24 hours.</p>
-      `
+            html: getVerificationEmailTemplate(verificationUrl)
+
         });
 
-        createSendToken(newUser, 201, req, res);
+        // Respond without logging in the user (require email verification first)
+        res.status(201).json({
+            status: 'success',
+            message: 'Registration successful! Please check your email to verify your account.',
+            data: {
+                user: {
+                    id: newUser._id,
+                    email: newUser.email,
+                    username: newUser.username
+                }
+            }
+        });
     } catch (err) {
+        console.error('Registration Error:', err);
         res.status(500).json({
             status: 'error',
-            message: err.message
+            message: 'An error occurred during registration. Please try again.'
         });
     }
 };
@@ -145,10 +154,7 @@ export const verifyEmail = async (req, res, next) => {
         user.emailVerificationExpires = undefined;
         await user.save();
 
-        res.status(200).json({
-            status: 'success',
-            message: 'Email verified successfully'
-        });
+        res.redirect(`/email-verified?status=success&userId=${user._id}`);
     } catch (err) {
         res.status(500).json({
             status: 'error',

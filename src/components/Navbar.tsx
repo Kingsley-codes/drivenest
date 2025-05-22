@@ -4,9 +4,24 @@ import Link from "next/link";
 import { GiCancel } from "react-icons/gi";
 import { FaBars } from "react-icons/fa";
 import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 
 export default function Navbar() {
+  const router = useRouter();
+  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // Unified auth redirection handler
+  const handleAuthNavigation = (targetPath: string) => {
+    // Store current path before redirecting to auth
+    localStorage.setItem("preRegisterPath", pathname);
+    router.push(targetPath);
+  };
+
+  const mobileMenuClick = (targetPath: string) => {
+    setMenuOpen(false);
+    handleAuthNavigation(targetPath);
+  };
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -47,7 +62,7 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Desktop Navigation (hidden on mobile) */}
+          {/* Desktop Navigation */}
           <div className="hidden sm:block">
             <ul className="flex text-xl space-x-4">
               <li className="px-3 py-2 hover:text-white hover:border-b-1 text-amber-400 hover:border-amber-300 transition-all duration-100 ease-in-out rounded-md">
@@ -65,23 +80,28 @@ export default function Navbar() {
               <li className="px-3 py-2 hover:text-white hover:border-b-1 text-amber-400 hover:border-amber-300 transition-all duration-100 ease-in-out rounded-md">
                 <Link href="/about">About</Link>
               </li>
-              <li className="pl-3 pr-3 ml-9 py-2 mr-0 hover:text-white border-r-1 text-amber-400 border-amber-400 hover:border-b-1 hover:border-amber-300 transition-all duration-100 ease-in-out rounded-b-sm">
-                <Link href="/login">Login</Link>
+              <li
+                onClick={() => handleAuthNavigation("/login")}
+                className="pl-3 pr-3 ml-9 py-2 mr-0 hover:text-white border-r-1 text-amber-400 border-amber-400 hover:border-b-1 hover:border-amber-300 transition-all duration-100 ease-in-out rounded-b-sm cursor-pointer"
+              >
+                Login
               </li>
-              <li className="pl-3 py-2 ml-0 hover:text-white border-l-1 text-amber-400 border-amber-400 hover:border-b-1 hover:border-amber-300 transition-all duration-100 ease-in rounded-b-sm">
-                <Link href="/register">Sign Up</Link>
+              <li
+                onClick={() => handleAuthNavigation("/register")}
+                className="pl-3 py-2 ml-0 hover:text-white border-l-1 text-amber-400 border-amber-400 hover:border-b-1 hover:border-amber-300 transition-all duration-100 ease-in rounded-b-sm cursor-pointer"
+              >
+                Sign Up
               </li>
             </ul>
           </div>
         </div>
       </div>
 
-      {/* Mobile menu (show/hide based on menu state) */}
+      {/* Mobile menu */}
       {menuOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-40 sm:hidden">
           <div className="mobile-menu-container absolute top-0 left-0 h-full w-3/4 bg-gray-900 shadow-xl transform transition-transform duration-300 ease-in-out">
             <div className="px-2 pt-2 pb-3 space-y-1 flex flex-col">
-              {/* Close button at the top right of mobile menu */}
               <div className="flex justify-end p-4">
                 <button
                   onClick={() => setMenuOpen(false)}
@@ -91,7 +111,6 @@ export default function Navbar() {
                 </button>
               </div>
 
-              {/* Mobile menu links */}
               <Link
                 href="/collections"
                 className="block px-3 py-2 hover:text-white hover:border-l-4 hover:border-amber-400 text-amber-300 hover:bg-gray-700 rounded-md"
@@ -129,20 +148,18 @@ export default function Navbar() {
               </Link>
 
               <div className="flex mt-16">
-                <Link
-                  href="/login"
+                <button
+                  onClick={() => mobileMenuClick("/login")}
                   className="block px-3 py-2 hover:text-white text-amber-300 border-r-1 border-amber-300 hover:border-b-1 hover:border-amber-400 transition-all duration-100 ease-in rounded-sm"
-                  onClick={() => setMenuOpen(false)}
                 >
                   Login
-                </Link>
-                <Link
-                  href="/register"
+                </button>
+                <button
+                  onClick={() => mobileMenuClick("/register")}
                   className="block px-3 py-2 hover:text-white text-amber-300 border-l-1 border-amber-300 hover:border-b-1 hover:border-amber-400 transition-all duration-100 ease-in rounded-sm"
-                  onClick={() => setMenuOpen(false)}
                 >
                   Sign Up
-                </Link>
+                </button>
               </div>
             </div>
           </div>
