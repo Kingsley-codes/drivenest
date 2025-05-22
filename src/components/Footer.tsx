@@ -65,8 +65,8 @@ export default function Footer() {
 
         <p className="text-md py-2 text-amber-400 max-w-2xl mx-auto">
           DriveNest offers a premium selection of luxury and everyday cars for
-          rent or purchase. Whether you're cruising in style or commuting with
-          ease, we&apos;ve got the perfect ride for every road. Simple,
+          rent or purchase. Whether you&apos;re cruising in style or commuting
+          with ease, we&apos;ve got the perfect ride for every road. Simple,
           reliable, and tailored to your journey—DriveNest gets you there.
         </p>
 

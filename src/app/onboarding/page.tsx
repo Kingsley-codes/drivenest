@@ -1,20 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-
 export default function OnboardingPage() {
-  const router = useRouter();
-
-  // In a real app, you would check if the user is actually logged in
-  // and redirect to login if not
-  useEffect(() => {
-    // Example: Check if user is authenticated
-    // if (!isAuthenticated) {
-    //   router.push('/login');
-    // }
-  }, []);
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-950 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full bg-amber-400 rounded-2xl space-y-8">
