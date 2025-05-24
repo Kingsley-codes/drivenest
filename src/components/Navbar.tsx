@@ -6,21 +6,44 @@ import { FaBars, FaRegUser, FaChevronDown } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
+type User = {
+  username: string;
+};
+
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Replace with your actual auth state
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [userData, setUserData] = useState<User | null>(null);
 
-  // Check auth status on component mount
+  // Check auth status
   useEffect(() => {
-    // Replace this with your actual authentication check
-    const token = localStorage.getItem("authToken"); // Example
-    setIsLoggedIn(!!token);
-  }, []);
+    const checkAuthStatus = async () => {
+      try {
+        const response = await fetch("/api/auth/check", {
+          credentials: "include",
+        });
 
-  // Unified auth redirection handler
+        if (response.ok) {
+          const data = await response.json();
+          setIsLoggedIn(data.authenticated);
+          if (data.authenticated && data.user) {
+            setUserData(data.user);
+          }
+        }
+      } catch (error) {
+        console.error("Auth check failed:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuthStatus();
+  }, [pathname]);
+
   const handleAuthNavigation = (targetPath: string) => {
     localStorage.setItem("preRegisterPath", pathname);
     router.push(targetPath);
@@ -31,12 +54,20 @@ export default function Navbar() {
     handleAuthNavigation(targetPath);
   };
 
-  const handleLogout = () => {
-    // Perform logout operations
-    localStorage.removeItem("authToken"); // Example
-    setIsLoggedIn(false);
-    setUserDropdownOpen(false);
-    router.push("/");
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      setIsLoggedIn(false);
+      setUserData(null);
+      setUserDropdownOpen(false);
+      router.push("/");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   // Close menus when clicking outside
@@ -105,30 +136,22 @@ export default function Navbar() {
             </ul>
 
             <div className="flex items-center ml-4">
-              {!isLoggedIn ? (
-                <>
-                  <button
-                    onClick={() => handleAuthNavigation("/login")}
-                    className="pl-3 pr-3 py-2 hover:text-white border-r-1 text-amber-400 border-amber-400 hover:border-b-1 hover:border-amber-300 transition-all duration-100 ease-in-out rounded-b-sm cursor-pointer"
-                  >
-                    Login
-                  </button>
-                  <button
-                    onClick={() => handleAuthNavigation("/register")}
-                    className="pl-3 py-2 hover:text-white border-l-1 text-amber-400 border-amber-400 hover:border-b-1 hover:border-amber-300 transition-all duration-100 ease-in rounded-b-sm cursor-pointer"
-                  >
-                    Sign Up
-                  </button>
-                </>
-              ) : (
+              {isLoading ? (
+                <div className="h-8 w-8 rounded-full bg-gray-800 animate-pulse"></div>
+              ) : isLoggedIn ? (
                 <div className="relative user-dropdown">
                   <button
                     onClick={() => setUserDropdownOpen(!userDropdownOpen)}
                     className="flex items-center text-amber-400 hover:text-white transition-all duration-100 ease-in-out p-2 rounded-md"
                   >
                     <FaRegUser className="h-5 w-5 mr-1" />
+                    {userData?.username && (
+                      <span className="mr-1">{userData.username}</span>
+                    )}
                     <FaChevronDown
-                      className={`h-3 w-3 transition-transform ${userDropdownOpen ? "transform rotate-180" : ""}`}
+                      className={`h-3 w-3 transition-transform ${
+                        userDropdownOpen ? "transform rotate-180" : ""
+                      }`}
                     />
                   </button>
 
@@ -157,6 +180,21 @@ export default function Navbar() {
                     </div>
                   )}
                 </div>
+              ) : (
+                <>
+                  <button
+                    onClick={() => handleAuthNavigation("/login")}
+                    className="pl-3 pr-3 py-2 hover:text-white border-r-1 text-amber-400 border-amber-400 hover:border-b-1 hover:border-amber-300 transition-all duration-100 ease-in-out rounded-b-sm cursor-pointer"
+                  >
+                    Login
+                  </button>
+                  <button
+                    onClick={() => handleAuthNavigation("/register")}
+                    className="pl-3 py-2 hover:text-white border-l-1 text-amber-400 border-amber-400 hover:border-b-1 hover:border-amber-300 transition-all duration-100 ease-in rounded-b-sm cursor-pointer"
+                  >
+                    Sign Up
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -214,22 +252,11 @@ export default function Navbar() {
               </Link>
 
               <div className="flex mt-16">
-                {!isLoggedIn ? (
-                  <>
-                    <button
-                      onClick={() => mobileMenuClick("/login")}
-                      className="block px-3 py-2 hover:text-white text-amber-300 border-r-1 border-amber-300 hover:border-b-1 hover:border-amber-400 transition-all duration-100 ease-in rounded-sm"
-                    >
-                      Login
-                    </button>
-                    <button
-                      onClick={() => mobileMenuClick("/register")}
-                      className="block px-3 py-2 hover:text-white text-amber-300 border-l-1 border-amber-300 hover:border-b-1 hover:border-amber-400 transition-all duration-100 ease-in rounded-sm"
-                    >
-                      Sign Up
-                    </button>
-                  </>
-                ) : (
+                {isLoading ? (
+                  <div className="w-full text-center py-2">
+                    <div className="inline-block h-4 w-4 rounded-full bg-amber-400 animate-pulse"></div>
+                  </div>
+                ) : isLoggedIn ? (
                   <div className="w-full">
                     <div className="border-t border-amber-400 my-2"></div>
                     <Link
@@ -256,6 +283,21 @@ export default function Navbar() {
                       Logout
                     </button>
                   </div>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => mobileMenuClick("/login")}
+                      className="block px-3 py-2 hover:text-white text-amber-300 border-r-1 border-amber-300 hover:border-b-1 hover:border-amber-400 transition-all duration-100 ease-in rounded-sm"
+                    >
+                      Login
+                    </button>
+                    <button
+                      onClick={() => mobileMenuClick("/register")}
+                      className="block px-3 py-2 hover:text-white text-amber-300 border-l-1 border-amber-300 hover:border-b-1 hover:border-amber-400 transition-all duration-100 ease-in rounded-sm"
+                    >
+                      Sign Up
+                    </button>
+                  </>
                 )}
               </div>
             </div>

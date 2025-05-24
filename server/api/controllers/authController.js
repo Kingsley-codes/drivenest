@@ -187,6 +187,60 @@ export const facebookAuthCallback = (req, res, next) => {
 };
 
 
+// Add this to your authController.js
+export const checkAuth = async (req, res) => {
+    try {
+        // 1) Get token from cookie
+        let token;
+        if (req.cookies.jwt) {
+            token = req.cookies.jwt;
+        }
+
+        if (!token) {
+            return res.status(200).json({
+                authenticated: false,
+                message: 'Not authenticated'
+            });
+        }
+
+        // 2) Verify token
+        const decoded = await jwt.verify(token, process.env.JWT_SECRET);
+
+        // 3) Check if user still exists
+        const currentUser = await User.findById(decoded.id);
+        if (!currentUser) {
+            return res.status(200).json({
+                authenticated: false,
+                message: 'User no longer exists'
+            });
+        }
+
+        // 4) Check if user changed password after token was issued
+        if (currentUser.changedPasswordAfter(decoded.iat)) {
+            return res.status(200).json({
+                authenticated: false,
+                message: 'Password changed, please log in again'
+            });
+        }
+
+        // If we get here, user is authenticated
+        res.status(200).json({
+            authenticated: true,
+            user: {
+                id: currentUser._id,
+                username: currentUser.username,
+                email: currentUser.email
+            }
+        });
+    } catch (err) {
+        res.status(200).json({
+            authenticated: false,
+            message: 'Invalid token'
+        });
+    }
+};
+
+
 // Login controller
 export const loginUser = async (req, res, next) => {
     try {
@@ -220,10 +274,22 @@ export const loginUser = async (req, res, next) => {
     }
 };
 
+// Logout controller
+export const logoutUser = (req, res) => {
+    res.cookie('jwt', 'loggedout', {
+        expires: new Date(Date.now() + 10 * 1000), // 10 seconds
+        httpOnly: true
+    });
+
+    res.status(200).json({ status: 'success' });
+};
+
 export default {
     registerUser,
     verifyEmail,
     googleAuthCallback,
     facebookAuthCallback,
-    loginUser
+    loginUser,
+    checkAuth,
+    logoutUser
 };

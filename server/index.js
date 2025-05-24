@@ -8,6 +8,8 @@ import cookieParser from 'cookie-parser'
 import passport from 'passport';
 import './api/config/passport.js'
 import authRouter from './api/routes/authRoutes.js';
+import carRouter from './api/routes/carRoutes.js';
+
 
 
 
@@ -60,7 +62,8 @@ app.prepare().then(async () => {
     }
 
     // Define API routes
-    server.use("/api/auth", authRouter);  // Register auth routes
+    server.use("/api/auth", authRouter);  // auth routes
+    server.use("/api/cars", carRouter);  // car routes
 
 
     server.get("/api/hello", (req, res) => {

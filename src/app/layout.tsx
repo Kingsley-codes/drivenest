@@ -5,11 +5,15 @@ import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   title: "DriveNest",
   description:
     "DriveNest offers premium car sales and rentals with a wide range of vehicles, flexible plans, and reliable service you can trust",
+  icons: {
+    icon: "/drivenest.svg",
+  },
 };
 
 const ptSerif = PT_Serif({
@@ -50,7 +54,7 @@ export default function RootLayout({
     >
       <body>
         <Navbar />
-        {children}
+        <Providers>{children}</Providers>
         <Footer />
         <ToastContainer
           position="top-right"

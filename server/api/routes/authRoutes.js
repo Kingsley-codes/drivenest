@@ -30,6 +30,11 @@ authRouter.get('/email-verified/:token', authController.verifyEmail);
 // Login
 authRouter.post('/login', validateLogin, authController.loginUser);
 
+//Logout
+authRouter.post('/auth/logout', authController.logoutUser);
+
+// token authentication
+authRouter.get('/check', authController.checkAuth);
 
 // Google OAuth
 authRouter.get(
