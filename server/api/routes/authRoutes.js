@@ -31,16 +31,13 @@ authRouter.get('/email-verified/:token', authController.verifyEmail);
 authRouter.post('/login', validateLogin, authController.loginUser);
 
 //Logout
-authRouter.post('/auth/logout', authController.logoutUser);
+authRouter.post('/logout', authController.logoutUser);
 
-// token authentication
+// Check if user is authenticated
 authRouter.get('/check', authController.checkAuth);
 
 // Google OAuth
-authRouter.get(
-    '/google',
-    passport.authenticate('google', { scope: ['profile', 'email'] })
-);
+authRouter.get('/google', authController.handleGoogleLogin);
 
 authRouter.get(
     '/google/callback',

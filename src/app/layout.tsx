@@ -53,9 +53,11 @@ export default function RootLayout({
       className={`${ptSerif.variable} ${openSans.variable} ${outfit.variable} ${montserrat.variable}`}
     >
       <body>
-        <Navbar />
-        <Providers>{children}</Providers>
-        <Footer />
+        <Providers>
+          <Navbar />
+          {children}
+          <Footer />
+        </Providers>
         <ToastContainer
           position="top-right"
           autoClose={3000}

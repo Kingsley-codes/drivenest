@@ -6,6 +6,8 @@ import Link from "next/link";
 import axios from "axios";
 import { FcGoogle } from "react-icons/fc";
 import { AiOutlineFacebook } from "react-icons/ai";
+import { BiHide } from "react-icons/bi";
+import { BiShow } from "react-icons/bi";
 import { toast } from "react-toastify";
 
 export default function RegisterPage() {
@@ -19,9 +21,9 @@ export default function RegisterPage() {
   const [error, setError] = useState(""); // State for form validation error
   const [isLoading, setIsLoading] = useState(false); // State for loading spinner
   const [passwordError, setPasswordError] = useState(""); // State for password validation error
-  const searchParams = useSearchParams();
+  const [comfPassError, setComfPassError] = useState(""); // State for confirm password validation error
+  const [showPassword, setShowPassword] = useState(false); // Toggle password visibility state
   const router = useRouter();
-  const redirectPath = searchParams.get("redirect") || "/";
 
   const validatePassword = (password: string): string | null => {
     const regex =
@@ -30,6 +32,14 @@ export default function RegisterPage() {
       return "Password must contain 1 uppercase, 1 lowercase, 1 number, and 1 special character";
     }
     return null;
+  };
+
+  const handleOAuthRedirect = (provider: "google" | "facebook") => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("preRegisterPath", window.location.pathname);
+      document.cookie = `oauth_redirect=${window.location.pathname}; path=/`; // Set cookie for backend
+      window.location.href = `/api/auth/${provider}`; // Redirect to provider route
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,11 +54,6 @@ export default function RegisterPage() {
       const validationMessage = validatePassword(value);
       if (validationMessage) {
         setPasswordError(validationMessage);
-      } else if (
-        formData.passwordConfirm &&
-        value !== formData.passwordConfirm
-      ) {
-        setPasswordError("Passwords do not match");
       } else {
         setPasswordError("");
       }
@@ -57,9 +62,9 @@ export default function RegisterPage() {
     // Validate confirm password on typing
     if (name === "passwordConfirm") {
       if (value !== formData.password) {
-        setPasswordError("Passwords do not match");
+        setComfPassError("Passwords do not match");
       } else {
-        setPasswordError("");
+        setComfPassError("");
       }
     }
   };
@@ -79,9 +84,7 @@ export default function RegisterPage() {
       });
 
       // Redirect to email verification page
-      router.push(
-        `/verify-email?email=${encodeURIComponent(formData.email)}&redirect=${encodeURIComponent(redirectPath)}`
-      );
+      router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
     } catch (err) {
       if (axios.isAxiosError(err)) {
         const responseData = err.response?.data;
@@ -165,20 +168,38 @@ export default function RegisterPage() {
             <label htmlFor="password" className="sr-only">
               Password
             </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="new-password"
-              required
-              className="relative block w-full px-3 py-2 border border-amber-400 placeholder-amber-200 
+
+            <div className="relative">
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
+                required
+                className="relative block w-full px-3 py-2 border border-amber-400 placeholder-amber-200 
               text-amber-400 rounded-md focus:outline-none autofill:bg-gray-950 autofill:text-amber-400 focus:ring-amber-300 focus:border-amber-500 focus:z-10 sm:text-sm"
-              placeholder="Password"
-              value={formData.password}
-              onChange={handleChange}
-            />
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleChange}
+              />
+
+              {/* Toggle button for showing/hiding password */}
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-amber-400 hover:text-amber-300"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <BiShow className="h-5 w-5" />
+                ) : (
+                  <BiHide className="h-5 w-5" />
+                )}
+              </button>
+            </div>
+
             {passwordError && (
-              <p className="text-red-500 text-sm">{passwordError}</p>
+              <p className="text-amber-600 text-sm">{passwordError}</p>
             )}
           </div>
 
@@ -186,20 +207,37 @@ export default function RegisterPage() {
             <label htmlFor="password-confirm" className="sr-only">
               Confirm Password
             </label>
-            <input
-              id="password-confirm"
-              name="passwordConfirm"
-              type="password"
-              autoComplete="new-password"
-              required
-              className="relative block w-full px-3 py-2 mb-3 border border-amber-400 placeholder-amber-200 
+
+            <div className="relative">
+              <input
+                id="password-confirm"
+                name="passwordConfirm"
+                type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
+                required
+                className="relative block w-full px-3 py-2 mb-3 border border-amber-400 placeholder-amber-200 
               text-amber-400 rounded-md focus:outline-none autofill:bg-gray-950 autofill:text-amber-400 focus:ring-amber-300 focus:border-amber-500 focus:z-10 sm:text-sm"
-              placeholder="Confirm Password"
-              value={formData.passwordConfirm}
-              onChange={handleChange}
-            />
-            {passwordError && (
-              <p className="text-red-500 text-sm">{passwordError}</p>
+                placeholder="Confirm Password"
+                value={formData.passwordConfirm}
+                onChange={handleChange}
+              />
+
+              {/* Toggle button for showing/hiding password */}
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-amber-400 hover:text-amber-300"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <BiShow className="h-5 w-5" />
+                ) : (
+                  <BiHide className="h-5 w-5" />
+                )}
+              </button>
+            </div>
+            {comfPassError && (
+              <p className="text-amber-600 text-sm">{comfPassError}</p>
             )}
           </div>
 
@@ -273,23 +311,21 @@ export default function RegisterPage() {
             <h2 className=" text-amber-400 py-3">Other Sign Up Options</h2>
 
             <div className="flex justify-center space-x-4">
-              <Link
-                href={`/api/auth/google?redirect=${encodeURIComponent(redirectPath)}`}
+              <button
+                onClick={() => handleOAuthRedirect("google")}
+                className="text-amber-400 hover:text-amber-300 px-3 py-1 border border-amber-400 rounded-lg space-x-2"
               >
-                <button className="text-amber-400 hover:text-amber-300 px-3 py-1 border border-amber-400 rounded-lg space-x-2">
-                  <FcGoogle className="h-8 w-8 ml-3" />
-                  <p>Google</p>
-                </button>
-              </Link>
+                <FcGoogle className="h-8 w-8 ml-3" />
+                <p>Google</p>
+              </button>
 
-              <Link
-                href={`/api/auth/facebook?redirect=${encodeURIComponent(redirectPath)}`}
+              <button
+                onClick={() => handleOAuthRedirect("facebook")}
+                className="text-amber-400 hover:text-amber-300 py-1 px-1 border border-amber-400 rounded-lg space-x-2"
               >
-                <button className="text-amber-400 hover:text-amber-300 py-1 px-1 border border-amber-400 rounded-lg space-x-2">
-                  <AiOutlineFacebook className="h-8 w-8 ml-5" />
-                  <p>Facebook</p>
-                </button>
-              </Link>
+                <AiOutlineFacebook className="h-8 w-8 ml-5" />
+                <p>Facebook</p>
+              </button>
             </div>
           </div>
         </form>

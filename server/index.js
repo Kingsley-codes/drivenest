@@ -6,10 +6,9 @@ import helmet from "helmet";
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser'
 import passport from 'passport';
-import './api/config/passport.js'
+import { configurePassportStrategies } from './api/config/passport.js';
 import authRouter from './api/routes/authRoutes.js';
 import carRouter from './api/routes/carRoutes.js';
-
 
 
 
@@ -29,6 +28,9 @@ const limiter = rateLimit({
 
 app.prepare().then(async () => {
     const server = express();
+
+    // Call strategy setup early
+    configurePassportStrategies();
 
     // Middleware
     server.use(cookieParser());

@@ -5,44 +5,19 @@ import { GiCancel } from "react-icons/gi";
 import { FaBars, FaRegUser, FaChevronDown } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-
-type User = {
-  username: string;
-};
+import axios from "axios";
+import { useAuthQuery } from "../../lib/hooks/useAuthQuery";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [userData, setUserData] = useState<User | null>(null);
+  const queryClient = useQueryClient();
 
-  // Check auth status
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      try {
-        const response = await fetch("/api/auth/check", {
-          credentials: "include",
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setIsLoggedIn(data.authenticated);
-          if (data.authenticated && data.user) {
-            setUserData(data.user);
-          }
-        }
-      } catch (error) {
-        console.error("Auth check failed:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuthStatus();
-  }, [pathname]);
+  const { data: authData, refetch } = useAuthQuery();
+  const isAuthenticated = !!authData?.user;
 
   const handleAuthNavigation = (targetPath: string) => {
     localStorage.setItem("preRegisterPath", pathname);
@@ -56,13 +31,9 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
-
-      setIsLoggedIn(false);
-      setUserData(null);
+      await axios.post("/api/auth/logout", {}, { withCredentials: true });
+      // Clear the auth query cache
+      await queryClient.invalidateQueries({ queryKey: ["auth"] });
       setUserDropdownOpen(false);
       router.push("/");
     } catch (error) {
@@ -70,7 +41,6 @@ export default function Navbar() {
     }
   };
 
-  // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -102,95 +72,98 @@ export default function Navbar() {
                 onClick={() => setMenuOpen(!menuOpen)}
                 className="inline-flex items-center justify-center p-2 rounded-md text-white hover:text-white focus:outline-none"
               >
-                <FaBars className="block cursor-pointer text-amber-400 h-6 w-6 m-2" />
+                <FaBars className="text-amber-400 h-6 w-6 m-2" />
               </button>
             </div>
 
             {/* Logo */}
-            <div className="flex-shrink-0 flex items-center">
-              <Link href="/" className="text-4xl font-pt-serif font-bold">
-                <span className="text-amber-400">Drive</span>
-                <span className="text-white">Nest</span>
-              </Link>
-            </div>
+            <Link href="/" className="text-4xl font-pt-serif font-bold">
+              <span className="text-amber-400">Drive</span>
+              <span className="text-white">Nest</span>
+            </Link>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden sm:flex justify-between items-center">
             <ul className="flex text-xl space-x-4">
-              <li className="px-3 py-2 hover:text-white hover:border-b-1 text-amber-400 hover:border-amber-300 transition-all duration-100 ease-in-out rounded-md">
-                <Link href="/collections">Garage</Link>
-              </li>
-              <li className="px-3 py-2 hover:text-white hover:border-b-1 text-amber-400 hover:border-amber-300 transition-all duration-100 ease-in-out rounded-md">
-                <Link href="/rentals">Rent a Car</Link>
-              </li>
-              <li className="px-3 py-2 hover:text-white hover:border-b-1 text-amber-400 hover:border-amber-300 transition-all duration-100 ease-in-out rounded-md">
-                <Link href="/sales">Buy a Car</Link>
-              </li>
-              <li className="px-3 py-2 hover:text-white hover:border-b-1 text-amber-400 hover:border-amber-300 transition-all duration-100 ease-in-out rounded-md">
-                <Link href="/contact">Contact</Link>
-              </li>
-              <li className="px-3 py-2 hover:text-white hover:border-b-1 text-amber-400 hover:border-amber-300 transition-all duration-100 ease-in-out rounded-md">
-                <Link href="/about">About</Link>
-              </li>
+              {["collections", "rentals", "sales", "contact", "about"].map(
+                (page) => (
+                  <li
+                    key={page}
+                    className="px-3 py-2 text-amber-400 hover:text-white hover:border-b-1 hover:border-amber-300 transition-all duration-100 ease-in-out rounded-md"
+                  >
+                    <Link href={`/${page}`}>
+                      {page === "collections"
+                        ? "Garage"
+                        : page === "sales"
+                          ? "Buy a Car"
+                          : page === "rentals"
+                            ? "Rent a Car"
+                            : page.charAt(0).toUpperCase() + page.slice(1)}
+                    </Link>
+                  </li>
+                )
+              )}
             </ul>
 
             <div className="flex items-center ml-4">
-              {isLoading ? (
-                <div className="h-8 w-8 rounded-full bg-gray-800 animate-pulse"></div>
-              ) : isLoggedIn ? (
-                <div className="relative user-dropdown">
-                  <button
-                    onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                    className="flex items-center text-amber-400 hover:text-white transition-all duration-100 ease-in-out p-2 rounded-md"
-                  >
-                    <FaRegUser className="h-5 w-5 mr-1" />
-                    {userData?.username && (
-                      <span className="mr-1">{userData.username}</span>
-                    )}
-                    <FaChevronDown
-                      className={`h-3 w-3 transition-transform ${
-                        userDropdownOpen ? "transform rotate-180" : ""
-                      }`}
-                    />
-                  </button>
+              {isAuthenticated ? (
+                <>
+                  <div className="h-2 w-2 rounded-full bg-amber-400 animate-pulse"></div>
 
-                  {userDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-gray-900 rounded-md shadow-lg py-1 z-50 border border-amber-400">
-                      <Link
-                        href="/dashboard"
-                        className="block px-4 py-2 text-amber-300 hover:text-white hover:bg-gray-800"
-                        onClick={() => setUserDropdownOpen(false)}
-                      >
-                        Dashboard
-                      </Link>
-                      <Link
-                        href="/orders"
-                        className="block px-4 py-2 text-amber-300 hover:text-white hover:bg-gray-800"
-                        onClick={() => setUserDropdownOpen(false)}
-                      >
-                        Orders
-                      </Link>
-                      <button
-                        onClick={handleLogout}
-                        className="block w-full text-left px-4 py-2 text-amber-300 hover:text-white hover:bg-gray-800"
-                      >
-                        Logout
-                      </button>
-                    </div>
-                  )}
-                </div>
+                  <div className="relative user-dropdown ml-2">
+                    <button
+                      onClick={() => setUserDropdownOpen((prev) => !prev)}
+                      className="flex items-center text-amber-400 hover:text-white transition-all duration-100 ease-in-out p-2 rounded-md"
+                    >
+                      <FaRegUser className="h-5 w-5 mr-1" />
+                      <span className="mr-1">
+                        {authData.user.username || "Account"}
+                      </span>
+                      <FaChevronDown
+                        className={`h-3 w-3 transition-transform ${
+                          userDropdownOpen ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+
+                    {userDropdownOpen && (
+                      <div className="absolute right-0 mt-2 w-48 bg-gray-900 rounded-md shadow-lg py-1 z-50 border border-amber-400">
+                        <Link
+                          href="/dashboard"
+                          className="block px-4 py-2 text-amber-300 hover:text-white hover:bg-gray-800"
+                          onClick={() => setUserDropdownOpen(false)}
+                        >
+                          Dashboard
+                        </Link>
+                        <Link
+                          href="/orders"
+                          className="block px-4 py-2 text-amber-300 hover:text-white hover:bg-gray-800"
+                          onClick={() => setUserDropdownOpen(false)}
+                        >
+                          Orders
+                        </Link>
+                        <button
+                          onClick={handleLogout}
+                          className="block w-full text-left px-4 py-2 text-amber-300 hover:text-white hover:bg-gray-800"
+                        >
+                          Logout
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </>
               ) : (
                 <>
                   <button
                     onClick={() => handleAuthNavigation("/login")}
-                    className="pl-3 pr-3 py-2 hover:text-white border-r-1 text-amber-400 border-amber-400 hover:border-b-1 hover:border-amber-300 transition-all duration-100 ease-in-out rounded-b-sm cursor-pointer"
+                    className="pl-3 pr-3 py-2 text-amber-400 hover:text-white border-r-1 border-amber-400 hover:border-b-1 hover:border-amber-300 transition-all duration-100 ease-in-out rounded-b-sm"
                   >
                     Login
                   </button>
                   <button
                     onClick={() => handleAuthNavigation("/register")}
-                    className="pl-3 py-2 hover:text-white border-l-1 text-amber-400 border-amber-400 hover:border-b-1 hover:border-amber-300 transition-all duration-100 ease-in rounded-b-sm cursor-pointer"
+                    className="pl-3 py-2 text-amber-400 hover:text-white border-l-1 border-amber-400 hover:border-b-1 hover:border-amber-300 transition-all duration-100 ease-in-out rounded-b-sm"
                   >
                     Sign Up
                   </button>
@@ -201,99 +174,115 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile Menu */}
       {menuOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-40 sm:hidden">
-          <div className="mobile-menu-container absolute top-0 left-0 h-full w-3/4 bg-gray-900 shadow-xl transform transition-transform duration-300 ease-in-out">
+          <div className="mobile-menu-container absolute top-0 left-0 h-full w-3/4 bg-gray-900 shadow-xl">
             <div className="px-2 pt-2 pb-3 space-y-1 flex flex-col">
               <div className="flex justify-end p-4">
                 <button
                   onClick={() => setMenuOpen(false)}
-                  className="p-2 golden m-2 rounded-md hover:bg-gray-800 cursor-pointer focus:outline-none"
+                  className="p-2 m-2 rounded-md hover:bg-gray-800"
                 >
-                  <GiCancel className="h-6 w-6" />
+                  <GiCancel className="h-6 w-6 text-white" />
                 </button>
               </div>
 
-              <Link
-                href="/collections"
-                className="block px-3 py-2 hover:text-white hover:border-l-4 hover:border-amber-400 text-amber-300 hover:bg-gray-700 rounded-md"
-                onClick={() => setMenuOpen(false)}
-              >
-                Garage
-              </Link>
-              <Link
-                href="/rentals"
-                className="block px-3 py-2 hover:text-white hover:border-l-4 hover:border-amber-400 text-amber-300 hover:bg-gray-700 rounded-md"
-                onClick={() => setMenuOpen(false)}
-              >
-                Rent a Car
-              </Link>
-              <Link
-                href="/sales"
-                className="block px-3 py-2 hover:text-white hover:border-l-4 hover:border-amber-400 text-amber-300 hover:bg-gray-700 rounded-md"
-                onClick={() => setMenuOpen(false)}
-              >
-                Buy a Car
-              </Link>
-              <Link
-                href="/contact"
-                className="block px-3 py-2 hover:text-white hover:border-l-4 hover:border-amber-400 text-amber-300 hover:bg-gray-700 rounded-md"
-                onClick={() => setMenuOpen(false)}
-              >
-                Contact
-              </Link>
-              <Link
-                href="/about"
-                className="block px-3 py-2 hover:text-white hover:border-l-4 hover:border-amber-400 text-amber-300 hover:bg-gray-700 rounded-md"
-                onClick={() => setMenuOpen(false)}
-              >
-                About
-              </Link>
+              {["collections", "rentals", "sales", "contact", "about"].map(
+                (page) => (
+                  <Link
+                    key={page}
+                    href={`/${page}`}
+                    className="block px-3 py-2 text-amber-300 hover:text-white hover:border-l-4 hover:border-amber-400 hover:bg-gray-700 rounded-md"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {page === "collections"
+                      ? "Garage"
+                      : page === "sales"
+                        ? "Buy a Car"
+                        : page === "rentals"
+                          ? "Rent a Car"
+                          : page.charAt(0).toUpperCase() + page.slice(1)}
+                  </Link>
+                )
+              )}
 
-              <div className="flex mt-16">
-                {isLoading ? (
-                  <div className="w-full text-center py-2">
-                    <div className="inline-block h-4 w-4 rounded-full bg-amber-400 animate-pulse"></div>
-                  </div>
-                ) : isLoggedIn ? (
-                  <div className="w-full">
-                    <div className="border-t border-amber-400 my-2"></div>
-                    <Link
-                      href="/dashboard"
-                      className="block px-3 py-2 hover:text-white hover:border-l-4 hover:border-amber-400 text-amber-300 hover:bg-gray-700 rounded-md"
-                      onClick={() => setMenuOpen(false)}
+              <div className="flex mt-16 flex-col px-3 space-y-2">
+                {isAuthenticated ? (
+                  <>
+                    <div className="border-t border-amber-400 my-2" />
+
+                    <div className="flex items-center">
+                      <div className="h-2 w-2 rounded-full bg-amber-400 animate-pulse"></div>
+
+                      <button
+                        onClick={(e) => {
+                          setUserDropdownOpen((prev) => !prev);
+                        }}
+                        className="flex items-center text-amber-400 hover:text-white transition-all duration-100 ease-in-out p-2 rounded-md"
+                      >
+                        <FaRegUser className="h-5 w-5 mr-1" />
+                        <span className="mr-1">
+                          {authData.user.username || "Account"}
+                        </span>
+                        <FaChevronDown
+                          className={`h-3 w-3 transition-transform ${
+                            userDropdownOpen ? "rotate-180" : ""
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    {/* Dropdown Content - Only visible when userDropdownOpen is true */}
+                    <div
+                      className={`overflow-hidden transition-all duration-200 ease-in-out ${
+                        userDropdownOpen ? "max-h-96" : "max-h-0"
+                      }`}
                     >
-                      Dashboard
-                    </Link>
-                    <Link
-                      href="/orders"
-                      className="block px-3 py-2 hover:text-white hover:border-l-4 hover:border-amber-400 text-amber-300 hover:bg-gray-700 rounded-md"
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      Orders
-                    </Link>
-                    <button
-                      onClick={() => {
-                        handleLogout();
-                        setMenuOpen(false);
-                      }}
-                      className="block w-full text-left px-3 py-2 hover:text-white hover:border-l-4 hover:border-amber-400 text-amber-300 hover:bg-gray-700 rounded-md"
-                    >
-                      Logout
-                    </button>
-                  </div>
+                      <div className="pl-8 space-y-2">
+                        {" "}
+                        {/* Added padding-left for indentation */}
+                        <Link
+                          href="/dashboard"
+                          className="block text-amber-300 hover:text-white hover:border-l-4 hover:border-amber-400 hover:bg-gray-700 rounded-md py-2 pl-2"
+                          onClick={() => {
+                            setMenuOpen(false);
+                          }}
+                        >
+                          Dashboard
+                        </Link>
+                        <Link
+                          href="/orders"
+                          className="block text-amber-300 hover:text-white hover:border-l-4 hover:border-amber-400 hover:bg-gray-700 rounded-md py-2 pl-2"
+                          onClick={() => {
+                            setMenuOpen(false);
+                          }}
+                        >
+                          Orders
+                        </Link>
+                        <button
+                          onClick={() => {
+                            handleLogout();
+                            setMenuOpen(false);
+                          }}
+                          className="block text-left text-amber-300 hover:text-white hover:border-l-4 hover:border-amber-400 hover:bg-gray-700 rounded-md py-2 pl-2"
+                        >
+                          Logout
+                        </button>
+                      </div>
+                    </div>
+                  </>
                 ) : (
                   <>
                     <button
                       onClick={() => mobileMenuClick("/login")}
-                      className="block px-3 py-2 hover:text-white text-amber-300 border-r-1 border-amber-300 hover:border-b-1 hover:border-amber-400 transition-all duration-100 ease-in rounded-sm"
+                      className="text-amber-300 hover:text-white hover:border-l-4 hover:border-amber-400 hover:bg-gray-700 rounded-md py-2"
                     >
                       Login
                     </button>
                     <button
                       onClick={() => mobileMenuClick("/register")}
-                      className="block px-3 py-2 hover:text-white text-amber-300 border-l-1 border-amber-300 hover:border-b-1 hover:border-amber-400 transition-all duration-100 ease-in rounded-sm"
+                      className="text-amber-300 hover:text-white hover:border-l-4 hover:border-amber-400 hover:bg-gray-700 rounded-md py-2"
                     >
                       Sign Up
                     </button>

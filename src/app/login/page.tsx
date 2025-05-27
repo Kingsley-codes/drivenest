@@ -3,13 +3,31 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import axios from "axios";
+import { BiHide } from "react-icons/bi";
+import { BiShow } from "react-icons/bi";
+import { useQueryClient } from "@tanstack/react-query";
+import { showErrorToast, showSuccessToast } from "../../../lib/toast";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // Toggle password visibility state
   const router = useRouter();
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
+  const queryClient = useQueryClient();
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,18 +35,47 @@ export default function LoginPage() {
     setError("");
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await axios.post("/api/auth/login", formData, {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-      // For demo purposes, we'll just check if fields are filled
-      if (!email || !password) {
-        throw new Error("Please fill in all fields");
+      // Handle successful login
+      if (response.status === 200) {
+        showSuccessToast("Login successful! Redirecting...");
+
+        // Force immediate refetch of auth state
+        await queryClient.invalidateQueries({ queryKey: ["auth"] });
+
+        // 2. Wait briefly for the invalidation to complete
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        // 3. Redirect to the dashboard or the path stored in localStorage
+        const redirectPath = localStorage.getItem("preRegisterPath") || "/";
+        localStorage.removeItem("preRegisterPath");
+
+        router.push(redirectPath);
+      } else {
+        throw new Error(response.data.message || "Login failed");
+      }
+    } catch (err) {
+      let errorMessage = "Login failed. Please try again.";
+
+      if (axios.isAxiosError(err)) {
+        // Handle Axios-specific errors
+        if (err.response) {
+          errorMessage = err.response.data.message || errorMessage;
+        } else if (err.request) {
+          errorMessage = "No response from server. Please try again later.";
+        }
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
       }
 
-      // On successful login, redirect to onboarding
-      router.push("/dashboard");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
+      showErrorToast(errorMessage);
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -43,10 +90,10 @@ export default function LoginPage() {
           </h2>
         </div>
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4">
+          <div className="bg-amber-50 border-x-4 rounded-md border-amber-500 p-4">
             <div className="flex">
-              <div className="text-red-500">
-                <p className="text-sm">{error}</p>
+              <div className="text-gray-900 w-full text-center">
+                <p className="text-md">{error}</p>
               </div>
             </div>
           </div>
@@ -68,26 +115,40 @@ export default function LoginPage() {
                  border-amber-400 placeholder-amber-200 text-amber-400 focus:outline-none 
                  focus:ring-amber-300 focus:border-amber-500 focus:z-10 sm:text-sm autofill:bg-gray-950 autofill:text-amber-400"
               placeholder="Email address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={formData.email}
+              onChange={handleChange}
             />
           </div>
-          <div>
+          <div className="relative">
             <label htmlFor="password" className="sr-only">
               Password
             </label>
             <input
               id="password"
               name="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               autoComplete="current-password"
               required
               className="relative block w-full px-3 mb-3 py-2 border border-amber-400 placeholder-amber-200 
               text-amber-400 rounded-md focus:outline-none autofill:bg-gray-950 autofill:text-amber-400 focus:ring-amber-300 focus:border-amber-500 focus:z-10 sm:text-sm"
               placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={formData.password}
+              onChange={handleChange}
             />
+
+            {/* Toggle button for showing/hiding password */}
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-amber-400 hover:text-amber-300"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? (
+                <BiShow className="h-5 w-5" />
+              ) : (
+                <BiHide className="h-5 w-5" />
+              )}
+            </button>
           </div>
 
           <div className="flex items-center justify-between">
@@ -111,26 +172,11 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="flex items-center">
-            <input
-              id="remember-me"
-              name="remember-me"
-              type="checkbox"
-              className="h-4 w-4 text-amber-400 focus:ring-amber-400 border-amber-300 rounded"
-            />
-            <label
-              htmlFor="remember-me"
-              className="ml-2 block text-sm text-amber-400"
-            >
-              Remember me
-            </label>
-          </div>
-
           <div>
             <button
               type="submit"
               disabled={isLoading}
-              className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-gray-950 bg-amber-400 hover:bg-amber-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 ${
+              className={`w-full py-2 px-4 border border-transparent text-sm font-medium rounded-md text-gray-950 bg-amber-400 hover:bg-amber-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 ${
                 isLoading ? "opacity-75 cursor-not-allowed" : ""
               }`}
             >

@@ -21,8 +21,10 @@ const createSendToken = (user, statusCode, req, res) => {
             Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
         ),
         httpOnly: true,
-        secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
-        sameSite: 'strict'
+        secure: false, // req.secure || req.headers['x-forwarded-proto'] === 'https'. this should be true in production
+        // If using HTTPS, set secure to true
+        sameSite: 'lax',
+        path: '/' // Ensure this is set to root
     });
 
     // Remove sensitive data
@@ -90,6 +92,7 @@ export const registerUser = async (req, res, next) => {
         req.body.password = await hashPassword(req.body.password);
         req.body.passwordConfirm = undefined;
 
+        // Create new user
         const newUser = await User.create({
             username: req.body.username,
             email: req.body.email,
@@ -163,69 +166,84 @@ export const verifyEmail = async (req, res, next) => {
     }
 };
 
-// OAuth callback controllers
+
+// OAuth 
+
+export const handleGoogleLogin = (req, res, next) => {
+    // Store redirect path before redirecting to Google
+    res.cookie('oauth_redirect', req.query.redirect || '/', {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+    });
+
+    passport.authenticate('google', {
+        scope: ['profile', 'email'],
+        session: false,
+    })(req, res, next);
+};
+
+
+// callback controllers
 
 export const googleAuthCallback = (req, res, next) => {
-    passport.authenticate('google', {
-        failureRedirect: '/login',
-        session: false
-    }, (err, user) => {
+    passport.authenticate("google", { session: false }, (err, user) => {
         if (err) return next(err);
-        createSendToken(user, 200, req, res);
+        if (!user) return res.redirect("/login");
+
+        createSendToken(user, 200, req, res); // Set cookie (JWT)
+
+        // Redirect to original path stored in user.redirectPath
+        const redirectPath = user.redirectPath || "/";
+        res.clearCookie("oauth_redirect", { path: "/" });
+        res.redirect(redirectPath);
     })(req, res, next);
 };
 
 
 export const facebookAuthCallback = (req, res, next) => {
-    passport.authenticate('facebook', {
-        failureRedirect: '/login',
-        session: false
-    }, (err, user) => {
+    passport.authenticate("facebook", { session: false }, (err, user) => {
         if (err) return next(err);
+        if (!user) return res.redirect("/login");
+
         createSendToken(user, 200, req, res);
+
+        const redirectPath = user.redirectPath || "/";
+        res.clearCookie("oauth_redirect", { path: "/" });
+        res.redirect(redirectPath);
     })(req, res, next);
 };
 
 
-// Add this to your authController.js
+// Check if user is authenticated
 export const checkAuth = async (req, res) => {
-    try {
-        // 1) Get token from cookie
-        let token;
-        if (req.cookies.jwt) {
-            token = req.cookies.jwt;
-        }
 
-        if (!token) {
+    try {
+        // Check JWT from cookies
+        const token = req.cookies.jwt;
+
+        if (!token || token === 'loggedout') {
             return res.status(200).json({
-                authenticated: false,
-                message: 'Not authenticated'
+                status: 'success',
+                user: null
             });
         }
 
-        // 2) Verify token
-        const decoded = await jwt.verify(token, process.env.JWT_SECRET);
+        // Verify token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        // 3) Check if user still exists
+        // Get fresh user from database
         const currentUser = await User.findById(decoded.id);
+
         if (!currentUser) {
             return res.status(200).json({
-                authenticated: false,
-                message: 'User no longer exists'
+                status: 'success',
+                user: null
             });
         }
 
-        // 4) Check if user changed password after token was issued
-        if (currentUser.changedPasswordAfter(decoded.iat)) {
-            return res.status(200).json({
-                authenticated: false,
-                message: 'Password changed, please log in again'
-            });
-        }
-
-        // If we get here, user is authenticated
         res.status(200).json({
-            authenticated: true,
+            status: 'success',
             user: {
                 id: currentUser._id,
                 username: currentUser.username,
@@ -234,8 +252,8 @@ export const checkAuth = async (req, res) => {
         });
     } catch (err) {
         res.status(200).json({
-            authenticated: false,
-            message: 'Invalid token'
+            status: 'success',
+            user: null
         });
     }
 };
@@ -264,8 +282,9 @@ export const loginUser = async (req, res, next) => {
             });
         }
 
-        // 3) If everything ok, send token
+        // Use the helper function to create token and set cookie
         createSendToken(user, 200, req, res);
+
     } catch (err) {
         res.status(500).json({
             status: 'error',
@@ -287,6 +306,7 @@ export const logoutUser = (req, res) => {
 export default {
     registerUser,
     verifyEmail,
+    handleGoogleLogin,
     googleAuthCallback,
     facebookAuthCallback,
     loginUser,
