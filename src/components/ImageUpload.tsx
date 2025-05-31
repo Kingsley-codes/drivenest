@@ -47,7 +47,7 @@ export default function ImageUpload({ images, setImages }: ImageUploadProps) {
       <label className="block text-sm font-medium">
         Car Images{" "}
         {allImagesEmpty && (
-          <span className="text-red-500">* (At least one image required)</span>
+          <span className="text-amber-500">(At least one image required)</span>
         )}
       </label>
       <div className="grid grid-cols-2 gap-4">
@@ -64,12 +64,14 @@ export default function ImageUpload({ images, setImages }: ImageUploadProps) {
             <label
               htmlFor={`file-upload-${index}`}
               className={`flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-lg cursor-pointer
-                hover:bg-gray-50 ${index === 0 ? "border-red-500" : "border-gray-300"}`}
+              hover:bg-gray-700 ${index === 0 ? "border-amber-600" : "border-amber-300"}`}
             >
-              <MdDriveFolderUpload className="text-3xl text-blue-500 mb-2" />
+              {!images[index] && (
+                <MdDriveFolderUpload className="text-4xl text-amber-500 mb-2" />
+              )}
               <span className="text-sm">
                 {images[index]
-                  ? "Image selected"
+                  ? ""
                   : index === 0
                     ? "Main image (required)"
                     : "Additional image"}
@@ -86,9 +88,9 @@ export default function ImageUpload({ images, setImages }: ImageUploadProps) {
               <button
                 type="button"
                 onClick={() => removeImage(index)}
-                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1"
+                className="absolute top-2 right-2 bg-amber-500 text-white rounded-lg px-1.5 p-1"
               >
-                ×
+                X
               </button>
             )}
           </div>

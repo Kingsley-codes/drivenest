@@ -37,9 +37,6 @@ export default function LoginPage() {
     try {
       const response = await axios.post("/api/auth/login", formData, {
         withCredentials: true,
-        headers: {
-          "Content-Type": "application/json",
-        },
       });
 
       // Handle successful login

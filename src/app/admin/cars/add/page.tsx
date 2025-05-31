@@ -5,29 +5,31 @@ import { toast } from "react-toastify";
 import { useMutation } from "@tanstack/react-query";
 import "react-toastify/dist/ReactToastify.css";
 import ImageUpload from "@/components/ImageUpload";
+import axios from "axios";
 
 type CarType = "regular" | "luxury" | "electric";
 type ModelCategory =
   | "sedan"
   | "SUV"
-  | "coupe"
-  | "hatchback"
+  | "supercar"
+  | "sports car"
   | "convertible"
   | "truck";
-type ListingType = "sale" | "rent";
 
 interface CarFormData {
-  make: string;
+  brand: string;
   model: string;
-  year: string;
-  listingType: ListingType;
-  color: string;
+  year: string[];
+  forSale: boolean;
+  forRent: boolean;
+  color: Array<string>;
   carType: CarType;
   modelCategory: ModelCategory;
   salesPrice: string;
   rentalPrice: string;
   mileage: string;
   isAvailable: boolean;
+  inStock: boolean;
   availableDate: string;
   description: string;
 }
@@ -36,17 +38,19 @@ export default function AddCarPage() {
   const router = useRouter();
   const [images, setImages] = useState<(File | null)[]>([]);
   const [formData, setFormData] = useState<CarFormData>({
-    make: "",
+    brand: "",
     model: "",
-    year: "",
-    listingType: "sale",
-    color: "",
+    year: [],
+    forSale: true,
+    forRent: true,
+    color: [],
     carType: "regular",
     modelCategory: "sedan",
     salesPrice: "",
     rentalPrice: "",
     mileage: "",
     isAvailable: true,
+    inStock: true,
     availableDate: "",
     description: "",
   });
@@ -55,28 +59,30 @@ export default function AddCarPage() {
   const modelCategories: ModelCategory[] = [
     "sedan",
     "SUV",
-    "coupe",
-    "hatchback",
+    "supercar",
+    "sports car",
     "convertible",
     "truck",
   ];
+
+  // Generate years from current year to 2015
+  const currentYear = new Date().getFullYear();
   const years = Array.from(
-    { length: 30 },
-    (_, i) => new Date().getFullYear() - i
+    { length: currentYear - 2015 + 1 },
+    (_, i) => currentYear - i
   );
 
   const mutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      const res = await fetch("/api/cars/add", {
-        method: "POST",
-        body: formData, // Note: Don't set Content-Type header for FormData
-      });
+      try {
+        const res = await axios.post("/api/cars/add", formData);
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Failed to add car");
+        return res.data;
+      } catch (error: any) {
+        // Axios wraps errors differently than fetch
+        const message = error.response?.data?.error || "Failed to add car";
+        throw new Error(message);
       }
-      return res.json();
     },
     onSuccess: () => {
       toast.success("Car added successfully!");
@@ -108,27 +114,55 @@ export default function AddCarPage() {
       return;
     }
 
+    // Validate at least one listing type is selected
+    if (!formData.forSale && !formData.forRent) {
+      toast.error("Please select at least one listing type (Sale or Rent)");
+      return;
+    }
+
+    // Validate prices based on selection
+    if (formData.forSale && !formData.salesPrice) {
+      toast.error("Please enter a sales price");
+      return;
+    }
+
+    if (formData.forRent && !formData.rentalPrice) {
+      toast.error("Please enter a rental price");
+      return;
+    }
+
     // Create FormData object instead of JSON
     const formDataObj = new FormData();
 
     // Append all form fields
     Object.entries(formData).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
-        formDataObj.append(key, value.toString());
+        if (Array.isArray(value)) {
+          // Handle array fields (like color)
+          value.forEach((item) => formDataObj.append(key, item));
+        } else {
+          formDataObj.append(key, value.toString());
+        }
       }
     });
 
-    // Convert year, prices, and mileage to numbers
-    formDataObj.set("year", parseInt(formData.year).toString());
-    if (formData.listingType === "sale") {
+    // Convert numeric fields
+    formData.year.forEach((y) => {
+      formDataObj.append("year", y);
+    });
+
+    formDataObj.set("mileage", parseInt(formData.mileage).toString());
+
+    if (formData.forSale) {
       formDataObj.set("salesPrice", parseFloat(formData.salesPrice).toString());
-    } else {
+    }
+
+    if (formData.forRent) {
       formDataObj.set(
         "rentalPrice",
         parseFloat(formData.rentalPrice).toString()
       );
     }
-    formDataObj.set("mileage", parseInt(formData.mileage).toString());
 
     // Append images
     images.forEach((image) => {
@@ -142,7 +176,9 @@ export default function AddCarPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Add New Car</h1>
+      <h1 className="text-3xl text-white text-center font-bold mb-6">
+        Add New Car
+      </h1>
 
       <form
         onSubmit={handleSubmit}
@@ -151,89 +187,147 @@ export default function AddCarPage() {
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           {/* Basic Information */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Basic Information</h2>
+          <div className="space-y-4 md:border-r md:pr-6 md:border-amber-400">
+            <h2 className="text-xl text-amber-400 font-semibold">
+              Basic Information
+            </h2>
 
             <div>
-              <label className="block mb-1">Make*</label>
+              <label className="block text-lg mb-1">Brand</label>
               <input
                 type="text"
-                name="make"
-                value={formData.make}
+                name="brand"
+                value={formData.brand}
                 onChange={handleChange}
                 required
-                className="w-full p-2 border rounded"
+                className="w-full p-2 focus:outline-none border-amber-300 focus:border-amber-300 border rounded-md"
               />
             </div>
 
             <div>
-              <label className="block mb-1">Model*</label>
+              <label className="block text-lg mb-1">Model</label>
               <input
                 type="text"
                 name="model"
                 value={formData.model}
                 onChange={handleChange}
                 required
-                className="w-full p-2 border rounded"
+                className="w-full focus:outline-none border-amber-300 focus:border-amber-300 p-2 border rounded-md"
               />
             </div>
 
             <div>
-              <label className="block mb-1">Year*</label>
-              <select
-                name="year"
-                value={formData.year}
-                onChange={handleChange}
-                required
-                className="w-full p-2 border rounded"
-              >
-                <option value="">Select Year</option>
+              <label className="block text-lg mb-1">Years</label>
+              <div className="grid grid-cols-4 gap-2">
                 {years.map((year) => (
-                  <option key={year} value={year}>
+                  <div
+                    key={year}
+                    onClick={() =>
+                      setFormData((prev) => {
+                        const alreadySelected = prev.year.includes(
+                          year.toString()
+                        );
+                        const updatedYears = alreadySelected
+                          ? prev.year.filter((y) => y !== year.toString()) // remove if selected
+                          : [...prev.year, year.toString()]; // add if not selected
+
+                        return {
+                          ...prev,
+                          year: updatedYears,
+                        };
+                      })
+                    }
+                    className={`
+          text-center px-3 py-2 rounded-md border cursor-pointer transition-colors
+          ${
+            formData.year.includes(year.toString())
+              ? "bg-amber-400 text-white border-amber-400"
+              : "bg-gray-800 text-amber-400 border-amber-400 hover:bg-gray-700"
+          }
+        `}
+                  >
                     {year}
-                  </option>
+                  </div>
                 ))}
-              </select>
+              </div>
             </div>
 
-            <div>
-              <label className="block mb-1">Color*</label>
-              <input
-                type="text"
-                name="color"
-                value={formData.color}
-                onChange={handleChange}
-                required
-                className="w-full p-2 border rounded"
-              />
+            <div className="mt-6 pt-4">
+              <label className="block text-lg  mb-1">Color</label>
+              <div className="flex flex-wrap gap-3 pl-2">
+                {["white", "black", "gray", "red", "blue"].map((color) => (
+                  <div
+                    key={color}
+                    onClick={() => {
+                      setFormData((prev) => {
+                        // Toggle color selection
+                        const newColor = prev.color.includes(color)
+                          ? prev.color.filter((c) => c !== color) // Remove if already selected
+                          : [...prev.color, color]; // Add if not selected
+
+                        return {
+                          ...prev,
+                          color: newColor,
+                        };
+                      });
+                    }}
+                    className={`
+                      px-2 py-1 rounded-md border cursor-pointer transition-colors
+                      ${
+                        formData.color.includes(color)
+                          ? "bg-amber-400 text-white border-amber-400"
+                          : "bg-gray-800 text-amber-400 border-amber-400 hover:bg-gray-700"
+                      }
+                    `}
+                  >
+                    {color.charAt(0).toUpperCase() + color.slice(1)}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Type & Category */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Type & Category</h2>
+          <div className="space-y-4 pt-5 md:pt-0">
+            <h2 className="text-xl text-amber-400 font-semibold">
+              Type & Category
+            </h2>
 
             <div>
-              <label className="block mb-1">Listing Type*</label>
+              <label className="block text-lg mb-1">Listing Type</label>
+
               <div className="flex space-x-4">
-                <label className="flex items-center">
+                <label className="flex text-amber-300 items-center">
                   <input
-                    type="radio"
-                    name="listingType"
-                    value="sale"
-                    checked={formData.listingType === "sale"}
-                    onChange={handleChange}
+                    type="checkbox"
+                    name="forSale"
+                    checked={formData.forSale}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      const { checked } = e.target;
+                      setFormData((prev) => ({
+                        ...prev,
+                        forSale: checked,
+                        salesPrice: checked ? prev.salesPrice : "",
+                      }));
+                    }}
                     className="mr-2"
                   />
                   For Sale
                 </label>
-                <label className="flex items-center">
+
+                <label className="flex text-amber-300 items-center">
                   <input
-                    type="radio"
-                    name="listingType"
-                    value="rent"
-                    checked={formData.listingType === "rent"}
-                    onChange={handleChange}
+                    type="checkbox"
+                    name="forRent"
+                    checked={formData.forRent}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      const { checked } = e.target;
+                      setFormData((prev) => ({
+                        ...prev,
+                        forRent: checked,
+                        rentalPrice: checked ? prev.rentalPrice : "",
+                      }));
+                    }}
                     className="mr-2"
                   />
                   For Rent
@@ -242,13 +336,13 @@ export default function AddCarPage() {
             </div>
 
             <div>
-              <label className="block mb-1">Car Type*</label>
+              <label className="block text-lg mb-1">Car Type</label>
               <select
                 name="carType"
                 value={formData.carType}
                 onChange={handleChange}
                 required
-                className="w-full p-2 border rounded"
+                className="w-full p-2 border rounded-md bg-gray-950 focus:outline-none border-amber-300 focus:border-amber-300"
               >
                 {carTypes.map((type) => (
                   <option key={type} value={type}>
@@ -259,13 +353,18 @@ export default function AddCarPage() {
             </div>
 
             <div>
-              <label className="block mb-1">Model Category*</label>
+              <label className="block text-lg mb-1">Model Category</label>
               <select
                 name="modelCategory"
                 value={formData.modelCategory}
                 onChange={handleChange}
                 required
-                className="w-full p-2 border rounded"
+                disabled={formData.carType === "electric"} // Disable when electric
+                className={`w-full p-2 border rounded-md focus:outline-none ${
+                  formData.carType === "electric"
+                    ? "bg-gray-800 border-gray-600 text-gray-400"
+                    : "bg-gray-950 border-amber-300 focus:border-amber-300"
+                }`}
               >
                 {modelCategories.map((category) => (
                   <option key={category} value={category}>
@@ -279,48 +378,47 @@ export default function AddCarPage() {
 
         {/* Pricing */}
         <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-4">Pricing</h2>
+          <h2 className="text-lg font-semibold text-amber-400 mb-4">Pricing</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {formData.listingType === "sale" && (
-              <div>
-                <label className="block mb-1">Sales Price ($)*</label>
-                <input
-                  type="number"
-                  name="salesPrice"
-                  value={formData.salesPrice}
-                  onChange={handleChange}
-                  required={formData.listingType === "sale"}
-                  className="w-full p-2 border rounded"
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-            )}
+            <div className={`${!formData.forSale && "opacity-50"}`}>
+              <label className="block mb-1">Sales Price ($)</label>
+              <input
+                type="number"
+                name="salesPrice"
+                value={formData.salesPrice}
+                onChange={handleChange}
+                disabled={!formData.forSale}
+                required={formData.forSale}
+                className="w-full focus:border-amber-300 border-amber-300 p-2 border rounded-md disabled:bg-gray-700"
+                min="0"
+                step="0.01"
+              />
+            </div>
 
-            {formData.listingType === "rent" && (
-              <div>
-                <label className="block mb-1">Rental Price ($/day)*</label>
-                <input
-                  type="number"
-                  name="rentalPrice"
-                  value={formData.rentalPrice}
-                  onChange={handleChange}
-                  required={formData.listingType === "rent"}
-                  className="w-full p-2 border rounded"
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-            )}
+            <div className={`${!formData.forRent && "opacity-50"}`}>
+              <label className="block mb-1">Rental Price ($/day)</label>
+              <input
+                type="number"
+                name="rentalPrice"
+                value={formData.rentalPrice}
+                onChange={handleChange}
+                disabled={!formData.forRent}
+                required={formData.forRent}
+                className="w-full p-2 border rounded-md focus:border-amber-300 border-amber-300 disabled:bg-gray-700"
+                min="0"
+                step="0.01"
+              />
+            </div>
 
-            <div>
+            <div className={`${!formData.forRent && "opacity-50"}`}>
               <label className="block mb-1">Mileage</label>
               <input
                 type="number"
                 name="mileage"
                 value={formData.mileage}
+                disabled={!formData.forRent}
                 onChange={handleChange}
-                className="w-full p-2 border rounded"
+                className="w-full p-2 border rounded-md focus:border-amber-300 border-amber-300"
                 min="0"
               />
             </div>
@@ -329,32 +427,53 @@ export default function AddCarPage() {
 
         {/* Availability */}
         <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-4">Availability</h2>
-          <div className="flex items-center space-x-4">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                name="isAvailable"
-                checked={formData.isAvailable}
-                onChange={handleChange}
-                className="mr-2"
-              />
-              Currently Available
-            </label>
+          <h2 className="text-lg text-amber-400 font-semibold mb-4">
+            Availability
+          </h2>
+          <div className="flex items-center space-x-4 py-2">
+            <div
+              className={`flex items-center space-x-4 ${!formData.forRent && "opacity-50"}`}
+            >
+              <div className="flex items-center space-x-4">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    name="isAvailable"
+                    checked={formData.isAvailable}
+                    onChange={handleChange}
+                    className="mr-2 text-amber-200"
+                  />
+                  Currently Available
+                </label>
 
-            {!formData.isAvailable && (
-              <div>
-                <label className="block mb-1">Available From</label>
-                <input
-                  type="date"
-                  name="availableDate"
-                  value={formData.availableDate}
-                  onChange={handleChange}
-                  required={!formData.isAvailable}
-                  className="p-2 border rounded"
-                />
+                {!formData.isAvailable && (
+                  <div>
+                    <label className="block mb-1">Available From</label>
+                    <input
+                      type="date"
+                      name="availableDate"
+                      value={formData.availableDate}
+                      onChange={handleChange}
+                      required={!formData.isAvailable}
+                      className="p-2 border rounded-md focus:border-amber-300 border-amber-300"
+                    />
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+
+            <div className={`${!formData.forSale && "opacity-50"}`}>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  name="inStock"
+                  checked={formData.inStock}
+                  onChange={handleChange}
+                  className="mr-2 text-amber-200"
+                />
+                In Stock
+              </label>
+            </div>
           </div>
         </div>
 
@@ -371,7 +490,7 @@ export default function AddCarPage() {
             value={formData.description}
             onChange={handleChange}
             rows={4}
-            className="w-full p-2 border rounded"
+            className="w-full border-amber-300 focus:outline-none focus:border-amber-300 p-2 border rounded-md"
           ></textarea>
         </div>
 
@@ -380,7 +499,7 @@ export default function AddCarPage() {
           <button
             type="submit"
             disabled={mutation.isPending}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-blue-400"
+            className="px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-400 disabled:bg-amber-300"
           >
             {mutation.isPending ? "Adding..." : "Add Car"}
           </button>

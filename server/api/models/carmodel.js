@@ -3,9 +3,9 @@ import mongoose from "mongoose";
 
 const carSchema = new mongoose.Schema(
     {
-        make: {
+        brand: {
             type: String,
-            required: [true, 'Make is required'],
+            required: [true, 'brand is required'],
             trim: true,
         },
         modelCategory: {
@@ -18,12 +18,16 @@ const carSchema = new mongoose.Schema(
             type: Array,
             required: [true, 'Year is required'],
         },
-        listingType: {
-            type: String,
-            required: [true, 'listingType is required'], // 'sale' or 'rent'
+        forSale: {
+            type: Boolean,
+            default: true, // Indicates if the car is for sale
+        },
+        forRent: {
+            type: Boolean,
+            default: true, // Indicates if the car is for rent
         },
         color: {
-            type: String,
+            type: Array,
             required: [true, 'Color is required'],
             trim: true,
         },
@@ -40,6 +44,10 @@ const carSchema = new mongoose.Schema(
         },
         mileage: {
             type: Number,
+        },
+        inStock: {
+            type: Boolean,
+            default: true, // Indicates if the car is in stock
         },
         // Availability
         isAvailable: {

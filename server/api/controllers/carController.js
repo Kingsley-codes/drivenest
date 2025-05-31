@@ -10,7 +10,7 @@ export const createCar = async (req, res) => {
             return res.status(400).json({ error: 'At least one image is required' });
         }
 
-        // Process image uploads to Cloudinary
+        // Process image uploads to Cloudinary 
 
         let uploadPromises = await Promise.all(
             req.files.map(async (item) => {
@@ -29,27 +29,29 @@ export const createCar = async (req, res) => {
 
         const imageUrls = await Promise.all(uploadPromises);
 
-        const { make, modelCategory, year, color, carType, listingType, description } = req.body;
+        const { brand, modelCategory, year, color, carType, forSale, forRent, description } = req.body;
 
         // Validate required fields
-        if (!make || !modelCategory || !year || !color || !carType || !listingType) {
+        if (!brand || !modelCategory || !year || !color || !carType) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
         // Create new car with all data
         const newCar = new Car({
-            make,
+            brand,
             modelCategory,
             year: parseInt(year),
             color,
             carType,
-            listingType,
+            forRent,
+            forSale,
             description,
             images: imageUrls,
-            salesPrice: listingType === 'sale' ? parseFloat(req.body.salesPrice) : undefined,
-            rentalPrice: listingType === 'rent' ? parseFloat(req.body.rentalPrice) : undefined,
+            salesPrice: parseFloat(req.body.salesPrice) || 0,
+            rentalPrice: parseFloat(req.body.rentalPrice) || 0,
             mileage: parseInt(req.body.mileage) || 0,
             isAvailable: req.body.isAvailable === 'true',
+            inStock: req.body.inStock === 'true',
             availableDate: req.body.isAvailable === 'false' ? new Date(req.body.availableDate) : undefined
         });
 

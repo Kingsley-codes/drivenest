@@ -77,9 +77,6 @@ export default function RegisterPage() {
     try {
       // Submit form data directly without CSRF token
       await axios.post("/api/auth/register", formData, {
-        headers: {
-          "Content-Type": "application/json",
-        },
         withCredentials: true, // Include cookies (e.g. for sessions)
       });
 
