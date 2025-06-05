@@ -1,22 +1,24 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-
-export const dynamic = "force-dynamic";
 
 export default function VerifyEmailPage() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
   const redirect = searchParams.get("redirect");
+  const [isClient, setIsClient] = useState(false); // Properly declare isClient state
 
   // Store the redirect path in localStorage when component mounts
   useEffect(() => {
+    setIsClient(true);
     if (redirect) {
       localStorage.setItem("preRegisterPath", redirect);
     }
   }, [redirect]);
+
+  if (!isClient) return null; // Prevents SSR hydration issues
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-950 text-amber-400 px-4">
