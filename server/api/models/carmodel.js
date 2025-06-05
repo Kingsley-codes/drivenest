@@ -8,6 +8,11 @@ const carSchema = new mongoose.Schema(
             required: [true, 'brand is required'],
             trim: true,
         },
+        model: {
+            type: String,
+            required: [true, 'model is required'],
+            trim: true,
+        },
         modelCategory: {
             type: String, // e.g., SUV, sedan, etc.
             required: [true, 'modelCategory is required'],

@@ -13,10 +13,8 @@ type ModelCategory =
   | "sports car"
   | "convertible"
   | "truck";
-type ListingType = "sale" | "rent" | "all";
 
 type availabilityStatus = "available" | "unavailable" | "all";
-type stockStatus = "inStock" | "outOfStock" | "all";
 type sortType = "price-low" | "price-high" | "year-new" | "year-old";
 
 interface Car {
@@ -26,17 +24,14 @@ interface Car {
   year: number;
   carType: CarType;
   modelCategory: ModelCategory;
-  salesPrice?: number;
   rentalPrice?: number;
   mileage?: number;
   isAvailable: boolean;
-  inStock: boolean;
   images?: string[];
-  forSale: boolean;
   forRent: boolean;
 }
 
-export default function CollectionsPage() {
+export default function RentalPage() {
   const [cars, setCars] = useState<Car[]>([]);
   const [filteredCars, setFilteredCars] = useState<Car[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,7 +39,6 @@ export default function CollectionsPage() {
   const [filterOpen, setFilterOpen] = useState(false);
 
   // Filter states
-  const [listingType, setListingType] = useState<ListingType>("all");
   const [selectedCarTypes, setSelectedCarTypes] = useState<CarType[]>([]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<ModelCategory[]>(
@@ -52,7 +46,6 @@ export default function CollectionsPage() {
   );
   const [availabilityFilter, setAvailabilityFilter] =
     useState<availabilityStatus>("all");
-  const [stockFilter, setStockFilter] = useState<stockStatus>("all");
   const [sortOption, setSortOption] = useState<sortType>("price-low");
 
   // Available options derived from cars data
@@ -70,7 +63,7 @@ export default function CollectionsPage() {
   useEffect(() => {
     const fetchCars = async () => {
       try {
-        const response = await axios.get("/api/cars");
+        const response = await axios.get("/api/cars?forRent=true");
         const data = response.data;
 
         setCars(data);
@@ -96,13 +89,6 @@ export default function CollectionsPage() {
     // Apply filters whenever any filter state changes
     let result = [...cars];
 
-    // Listing type filter
-    if (listingType !== "all") {
-      result = result.filter((car) =>
-        listingType === "sale" ? car.forSale : car.forRent
-      );
-    }
-
     // Car type filter
     if (selectedCarTypes.length > 0) {
       result = result.filter((car) => selectedCarTypes.includes(car.carType));
@@ -121,21 +107,10 @@ export default function CollectionsPage() {
     }
 
     // Availability filter (for rentals)
-    if (listingType === "rent" || listingType === "all") {
-      if (availabilityFilter === "available") {
-        result = result.filter((car) => car.isAvailable);
-      } else if (availabilityFilter === "unavailable") {
-        result = result.filter((car) => !car.isAvailable);
-      }
-    }
-
-    // Stock filter (for sales)
-    if (listingType === "sale" || listingType === "all") {
-      if (stockFilter === "inStock") {
-        result = result.filter((car) => car.inStock);
-      } else if (stockFilter === "outOfStock") {
-        result = result.filter((car) => !car.inStock);
-      }
+    if (availabilityFilter === "available") {
+      result = result.filter((car) => car.isAvailable);
+    } else if (availabilityFilter === "unavailable") {
+      result = result.filter((car) => !car.isAvailable);
     }
 
     // Sorting
@@ -165,12 +140,10 @@ export default function CollectionsPage() {
     setFilteredCars(result);
   }, [
     cars,
-    listingType,
     selectedCarTypes,
     selectedBrands,
     selectedCategories,
     availabilityFilter,
-    stockFilter,
     sortOption,
   ]);
 
@@ -195,18 +168,12 @@ export default function CollectionsPage() {
   };
 
   const clearAllFilters = () => {
-    setListingType("all");
     setSelectedCarTypes([]);
     setSelectedBrands([]);
     setSelectedCategories([]);
     setAvailabilityFilter("all");
-    setStockFilter("all");
     setSortOption("price-low");
   };
-
-  if (loading) return <div className="text-center py-20">Loading...</div>;
-  if (error)
-    return <div className="text-center py-20 text-red-500">{error}</div>;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -235,40 +202,6 @@ export default function CollectionsPage() {
           <div className="mb-6">
             <div className="hidden md:block text-center mb-4">
               <h2 className="text-xl font-bold">Filters</h2>
-            </div>
-
-            <h3 className="font-medium mb-2">Listing Type</h3>
-            <div className="space-y-2">
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="listingType"
-                  checked={listingType === "all"}
-                  onChange={() => setListingType("all")}
-                  className="mr-2"
-                />
-                All Listings
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="listingType"
-                  checked={listingType === "sale"}
-                  onChange={() => setListingType("sale")}
-                  className="mr-2"
-                />
-                For Sale
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="listingType"
-                  checked={listingType === "rent"}
-                  onChange={() => setListingType("rent")}
-                  className="mr-2"
-                />
-                For Rent
-              </label>
             </div>
           </div>
 
@@ -323,81 +256,41 @@ export default function CollectionsPage() {
             </div>
           </div>
 
-          {(listingType === "rent" || listingType === "all") && (
-            <div className="mb-6">
-              <h3 className="font-medium mb-2">Availability (Rentals)</h3>
-              <div className="space-y-2">
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="availability"
-                    checked={availabilityFilter === "all"}
-                    onChange={() => setAvailabilityFilter("all")}
-                    className="mr-2"
-                  />
-                  All
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="availability"
-                    checked={availabilityFilter === "available"}
-                    onChange={() => setAvailabilityFilter("available")}
-                    className="mr-2"
-                  />
-                  Available
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="availability"
-                    checked={availabilityFilter === "unavailable"}
-                    onChange={() => setAvailabilityFilter("unavailable")}
-                    className="mr-2"
-                  />
-                  Unavailable
-                </label>
-              </div>
+          <div className="mb-6">
+            <h3 className="font-medium mb-2">Availability </h3>
+            <div className="space-y-2">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="availability"
+                  checked={availabilityFilter === "all"}
+                  onChange={() => setAvailabilityFilter("all")}
+                  className="mr-2"
+                />
+                All
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="availability"
+                  checked={availabilityFilter === "available"}
+                  onChange={() => setAvailabilityFilter("available")}
+                  className="mr-2"
+                />
+                Available
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="availability"
+                  checked={availabilityFilter === "unavailable"}
+                  onChange={() => setAvailabilityFilter("unavailable")}
+                  className="mr-2"
+                />
+                Unavailable
+              </label>
             </div>
-          )}
-
-          {(listingType === "sale" || listingType === "all") && (
-            <div className="mb-6">
-              <h3 className="font-medium mb-2">Stock Status (Sales)</h3>
-              <div className="space-y-2">
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="stock"
-                    checked={stockFilter === "all"}
-                    onChange={() => setStockFilter("all")}
-                    className="mr-2"
-                  />
-                  All
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="stock"
-                    checked={stockFilter === "inStock"}
-                    onChange={() => setStockFilter("inStock")}
-                    className="mr-2"
-                  />
-                  In Stock
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="stock"
-                    checked={stockFilter === "outOfStock"}
-                    onChange={() => setStockFilter("outOfStock")}
-                    className="mr-2"
-                  />
-                  Out of Stock
-                </label>
-              </div>
-            </div>
-          )}
+          </div>
 
           <button
             onClick={clearAllFilters}
@@ -493,16 +386,9 @@ export default function CollectionsPage() {
                       <div className="mt-auto">
                         <div className="flex justify-between gap-1 items-center">
                           <div>
-                            {car.forSale && (
-                              <p className="font-bold text-sm">
-                                Sale: ${car.salesPrice?.toLocaleString()}
-                              </p>
-                            )}
-                            {car.forRent && (
-                              <p className="font-bold text-sm">
-                                Rent: ${car.rentalPrice}/day
-                              </p>
-                            )}
+                            <p className="font-bold text-sm">
+                              Rent: ${car.rentalPrice}/day
+                            </p>
                           </div>
                           <div className="text-sm flex gap-1">
                             {car.forRent && (
@@ -514,17 +400,6 @@ export default function CollectionsPage() {
                                 }`}
                               >
                                 {car.isAvailable ? "Available" : "Unavailable"}
-                              </span>
-                            )}
-                            {car.forSale && (
-                              <span
-                                className={`px-2 py-1 rounded ${
-                                  car.inStock
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-red-100 text-red-800"
-                                }`}
-                              >
-                                {car.inStock ? "In Stock" : "Out of Stock"}
                               </span>
                             )}
                           </div>

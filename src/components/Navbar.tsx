@@ -67,7 +67,7 @@ export default function Navbar() {
         <div className="relative flex items-center justify-between h-16">
           <div className="flex items-center">
             {/* Mobile menu button */}
-            <div className="sm:hidden mr-3">
+            <div className="md:hidden mr-3">
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
                 className="inline-flex items-center justify-center p-2 rounded-md text-white hover:text-white focus:outline-none"
@@ -84,7 +84,7 @@ export default function Navbar() {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden sm:flex justify-between items-center">
+          <div className="hidden md:flex justify-between items-center">
             <ul className="flex text-xl space-x-4">
               {["collections", "rentals", "sales", "contact", "about"].map(
                 (page) => (
@@ -176,7 +176,7 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {menuOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 sm:hidden">
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden">
           <div className="mobile-menu-container absolute top-0 left-0 h-full w-3/4 bg-gray-900 shadow-xl">
             <div className="px-2 pt-2 pb-3 space-y-1 flex flex-col">
               <div className="flex justify-end p-4">
@@ -184,7 +184,7 @@ export default function Navbar() {
                   onClick={() => setMenuOpen(false)}
                   className="p-2 m-2 rounded-md hover:bg-gray-800"
                 >
-                  <GiCancel className="h-6 w-6 text-white" />
+                  <GiCancel className="h-6 w-6 text-amber-400" />
                 </button>
               </div>
 
@@ -265,7 +265,7 @@ export default function Navbar() {
                             handleLogout();
                             setMenuOpen(false);
                           }}
-                          className="block text-left text-amber-300 hover:text-white hover:border-l-4 hover:border-amber-400 hover:bg-gray-700 rounded-md py-2 pl-2"
+                          className="block text-amber-300 hover:text-white hover:border-l-4 hover:border-amber-400 hover:bg-gray-700 rounded-md py-2 pl-2 w-full text-left mb-4"
                         >
                           Logout
                         </button>
