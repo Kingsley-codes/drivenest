@@ -347,7 +347,7 @@ export default function SalesPage() {
                   <select
                     id="sort"
                     value={sortOption}
-                    onChange={(e) => setSortOption(e.target.value as any)}
+                    onChange={(e) => setSortOption(e.target.value as sortType)}
                     className="p-2 border rounded-md"
                   >
                     <option className="bg-gray-800 " value="price-low">

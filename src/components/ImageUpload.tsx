@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useRef } from "react";
 import { MdDriveFolderUpload } from "react-icons/md";
 
@@ -77,10 +78,13 @@ export default function ImageUpload({ images, setImages }: ImageUploadProps) {
                     : "Additional image"}
               </span>
               {images[index] && (
-                <img
+                <Image
                   src={URL.createObjectURL(images[index] as File)}
                   alt={`Preview ${index}`}
+                  width={100} // Required
+                  height={100} // Required
                   className="mt-2 w-full h-24 object-cover rounded"
+                  unoptimized={true} // Required for blob URLs
                 />
               )}
             </label>
