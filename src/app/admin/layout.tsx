@@ -29,6 +29,7 @@ export default async function AdminLayout({
     }
   } catch (err) {
     // 5. Handle invalid/expired tokens
+    console.error("JWT verification failed:", err);
     redirect("/login?from=/admin");
   }
 

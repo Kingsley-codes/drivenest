@@ -16,7 +16,7 @@ export default function Navbar() {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: authData, refetch } = useAuthQuery();
+  const { data: authData } = useAuthQuery();
   const isAuthenticated = !!authData?.user;
 
   const handleAuthNavigation = (targetPath: string) => {
@@ -216,7 +216,7 @@ export default function Navbar() {
                       <div className="h-2 w-2 rounded-full bg-amber-400 animate-pulse"></div>
 
                       <button
-                        onClick={(e) => {
+                        onClick={() => {
                           setUserDropdownOpen((prev) => !prev);
                         }}
                         className="flex items-center text-amber-400 hover:text-white transition-all duration-100 ease-in-out p-2 rounded-md"

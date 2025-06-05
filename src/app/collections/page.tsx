@@ -83,6 +83,7 @@ export default function CollectionsPage() {
 
         setBrands(uniqueBrands);
       } catch (err) {
+        console.error("Failed to fetch cars:", err);
         setError("Failed to load cars. Please try again later.");
       } finally {
         setLoading(false);
@@ -425,7 +426,7 @@ export default function CollectionsPage() {
               <select
                 id="sort"
                 value={sortOption}
-                onChange={(e) => setSortOption(e.target.value as any)}
+                onChange={(e) => setSortOption(e.target.value as sortType)}
                 className="p-2 border rounded-md"
               >
                 <option className="bg-gray-800 " value="price-low">

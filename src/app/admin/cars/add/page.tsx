@@ -35,7 +35,6 @@ interface CarFormData {
 }
 
 export default function AddCarPage() {
-  const router = useRouter();
   const [images, setImages] = useState<(File | null)[]>([]);
   const [formData, setFormData] = useState<CarFormData>({
     brand: "",
@@ -78,17 +77,20 @@ export default function AddCarPage() {
         const res = await axios.post("/api/cars/add", formData);
 
         return res.data;
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Axios wraps errors differently than fetch
-        const message = error.response?.data?.error || "Failed to add car";
-        throw new Error(message);
+        if (axios.isAxiosError(error)) {
+          const message = error.response?.data?.error || "Failed to add car";
+          throw new Error(message);
+        }
+        throw new Error("Failed to add car due to an unknown error");
       }
     },
     onSuccess: () => {
       toast.success("Car added successfully!");
       // router.push("/dashboard/cars");
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       toast.error(err.message || "Something went wrong");
     },
   });

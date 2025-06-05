@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function About() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
@@ -8,42 +10,42 @@ export default function About() {
       </p>
       <p className="text-lg text-gray-700 mt-2">
         For more information, please contact us at{" "}
-        <a href="mailto:">agbamkingsley@gmail.com</a>.
+        <Link href="mailto:">agbamkingsley@gmail.com</Link>.
       </p>
       <p className="text-lg text-gray-700 mt-2">
         Follow us on{" "}
-        <a
+        <Link
           href="twitter.com/yourprofile"
           className="text-blue-500 hover:underline"
         >
           Twitter
-        </a>
+        </Link>
         and{" "}
-        <a
+        <Link
           href="github.com/yourprofile"
           className="text-blue-500 hover:underline"
         >
           GitHub
-        </a>
+        </Link>
         to stay updated with our latest news and projects.
       </p>
       <p className="text-lg text-gray-700 mt-2">
         Thank you for visiting our page!
       </p>
       <p className="text-lg text-gray-700 mt-2">
-        <a href="/" className="text-blue-500 hover:underline">
+        <Link href="/" className="text-blue-500 hover:underline">
           Go back to Home
-        </a>
+        </Link>
       </p>
       <p className="text-lg text-gray-700 mt-2">
-        <a href="/contact" className="text-blue-500 hover:underline">
+        <Link href="/contact" className="text-blue-500 hover:underline">
           Contact Us
-        </a>
+        </Link>
       </p>
       <p className="text-lg text-gray-700 mt-2">
-        <a href="/privacy" className="text-blue-500 hover:underline">
+        <Link href="/privacy" className="text-blue-500 hover:underline">
           Privacy Policy
-        </a>
+        </Link>
       </p>
     </div>
   );
