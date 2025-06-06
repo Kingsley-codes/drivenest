@@ -13,20 +13,23 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: authData } = useAuthQuery();
   const isAuthenticated = !!authData?.user;
 
-  const handleAuthNavigation = (targetPath: string) => {
-    localStorage.setItem("preRegisterPath", pathname);
-    router.push(targetPath);
+  const handleAuthNavigation = async (targetPath: string) => {
+    setAuthLoading(true);
+    document.cookie = `preRegisterPath=${pathname}; path=/`;
+    await router.push(targetPath);
+    setAuthLoading(false);
   };
 
-  const mobileMenuClick = (targetPath: string) => {
+  const mobileMenuClick = async (targetPath: string) => {
     setMenuOpen(false);
-    handleAuthNavigation(targetPath);
+    await handleAuthNavigation(targetPath);
   };
 
   const handleLogout = async () => {
@@ -159,13 +162,13 @@ export default function Navbar() {
                     onClick={() => handleAuthNavigation("/login")}
                     className="pl-3 pr-3 py-2 text-amber-400 hover:text-white border-r-1 border-amber-400 hover:border-b-1 hover:border-amber-300 transition-all duration-100 ease-in-out rounded-b-sm"
                   >
-                    Login
+                    {authLoading ? "..." : "Login"}
                   </button>
                   <button
                     onClick={() => handleAuthNavigation("/register")}
                     className="pl-3 py-2 text-amber-400 hover:text-white border-l-1 border-amber-400 hover:border-b-1 hover:border-amber-300 transition-all duration-100 ease-in-out rounded-b-sm"
                   >
-                    Sign Up
+                    {authLoading ? "..." : "Sign Up"}
                   </button>
                 </>
               )}

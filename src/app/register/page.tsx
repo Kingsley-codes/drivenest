@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import axios from "axios";
 import { FcGoogle } from "react-icons/fc";
@@ -11,6 +11,8 @@ import { BiShow } from "react-icons/bi";
 import { toast } from "react-toastify";
 
 export default function RegisterPage() {
+  const pathname = usePathname();
+
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -75,6 +77,11 @@ export default function RegisterPage() {
     setError("");
 
     try {
+      // Set cookie with expiration (recommended)
+      const expires = new Date();
+      expires.setTime(expires.getTime() + 15 * 60 * 1000); // 15 minutes expiration
+      document.cookie = `preRegisterPath=${pathname}; path=/; expires=${expires.toUTCString()}; SameSite=Lax`;
+
       // Submit form data directly without CSRF token
       await axios.post("/api/auth/register", formData, {
         withCredentials: true, // Include cookies (e.g. for sessions)
