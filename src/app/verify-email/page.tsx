@@ -1,11 +1,17 @@
 // app/verify-email/page.tsx
 import Link from "next/link";
 
+// Explicitly type the props for Server Component
+interface VerifyEmailPageProps {
+  searchParams: {
+    email?: string;
+    redirect?: string;
+  };
+}
+
 export default function VerifyEmailPage({
   searchParams,
-}: {
-  searchParams: { email?: string; redirect?: string };
-}) {
+}: VerifyEmailPageProps) {
   const email = searchParams.email;
   const redirect = searchParams.redirect;
 
