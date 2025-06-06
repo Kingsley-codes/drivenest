@@ -1,13 +1,13 @@
 // app/verify-email/page.tsx
-"use client";
-
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 
-export default function VerifyEmailPage() {
-  const searchParams = useSearchParams();
-  const email = searchParams.get("email");
-  const redirect = searchParams.get("redirect");
+export default function VerifyEmailPage({
+  searchParams,
+}: {
+  searchParams: { email?: string; redirect?: string };
+}) {
+  const email = searchParams.email;
+  const redirect = searchParams.redirect;
 
   if (!email) {
     return (
@@ -29,9 +29,8 @@ export default function VerifyEmailPage() {
         <h1 className="text-2xl font-bold">Verify Your Email</h1>
         <p>
           We sent a verification link to{" "}
-          <span className="font-semibold">{email}</span>.
-          <br />
-          Please check your inbox and sd click the link to continue.
+          <span className="font-semibold">{email}</span>.<br />
+          Please check your inbox and click the link to continue.
         </p>
         <p className="text-sm text-amber-300">
           Didn&apos;t get the email?{" "}
