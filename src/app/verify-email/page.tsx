@@ -1,16 +1,17 @@
 // app/verify-email/page.tsx
 import Link from "next/link";
 
-interface PageProps {
-  searchParams: {
-    email?: string;
-    redirect?: string;
-  };
-}
-
-export default function VerifyEmailPage({ searchParams }: PageProps) {
-  const email = searchParams.email || "";
-  const redirect = searchParams.redirect;
+export default function VerifyEmailPage({
+  searchParams,
+}: {
+  searchParams?: { [key: string]: string | string[] | undefined };
+}) {
+  const email =
+    typeof searchParams?.email === "string" ? searchParams.email : "";
+  const redirect =
+    typeof searchParams?.redirect === "string"
+      ? searchParams.redirect
+      : undefined;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-950 text-amber-400 px-4">
