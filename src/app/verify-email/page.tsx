@@ -1,21 +1,15 @@
 // app/verify-email/page.tsx
 import Link from "next/link";
 import { type Metadata } from "next";
+import { type NextPage } from "next";
 
 export const metadata: Metadata = {
   title: "Verify Your Email",
 };
 
-interface VerifyEmailPageProps {
-  searchParams: {
-    email?: string;
-    redirect?: string;
-  };
-}
-
-export default function VerifyEmailPage({
-  searchParams,
-}: VerifyEmailPageProps) {
+const VerifyEmailPage: NextPage<{
+  searchParams: { email?: string; redirect?: string };
+}> = ({ searchParams }) => {
   const email = searchParams.email;
   const redirect = searchParams.redirect;
 
@@ -54,4 +48,6 @@ export default function VerifyEmailPage({
       </div>
     </div>
   );
-}
+};
+
+export default VerifyEmailPage;
