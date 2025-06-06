@@ -17,7 +17,7 @@ export default function VerifyEmailPage({
           Please check your inbox and click the link to continue.
         </p>
         <p className="text-sm text-amber-300">
-          Didn't get the email?{" "}
+          Didn&apos;t get the email?{" "}
           <Link
             href="/resend-verification"
             className="underline hover:text-amber-200"

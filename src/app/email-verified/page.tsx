@@ -22,7 +22,7 @@ export default function EmailVerifiedPage() {
       <div className="max-w-md w-full space-y-6 text-center border border-amber-400 rounded-2xl p-6">
         <h1 className="text-2xl font-bold">Email Verified!</h1>
         <p>Your email has been successfully verified.</p>
-        <p>You'll be redirected shortly...</p>
+        <p>You&apos;ll be redirected shortly...</p>
       </div>
     </div>
   );
