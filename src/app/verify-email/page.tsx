@@ -31,7 +31,7 @@ export default function VerifyEmailPage() {
           We sent a verification link to{" "}
           <span className="font-semibold">{email}</span>.
           <br />
-          Please check your inbox and click the link to continue.
+          Please check your inbox and sd click the link to continue.
         </p>
         <p className="text-sm text-amber-300">
           Didn&apos;t get the email?{" "}
