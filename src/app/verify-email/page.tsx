@@ -4,22 +4,25 @@ import Link from "next/link";
 export default function VerifyEmailPage({
   searchParams,
 }: {
-  searchParams: { email: string; redirect?: string };
+  searchParams: Record<string, string | string[] | undefined>;
 }) {
+  const email = searchParams.email as string;
+  const redirect = searchParams.redirect as string | undefined;
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-950 text-amber-400 px-4">
       <div className="max-w-md w-full space-y-6 text-center border border-amber-400 rounded-2xl p-6">
         <h1 className="text-2xl font-bold">Verify Your Email</h1>
         <p>
           We sent a verification link to{" "}
-          <span className="font-semibold">{searchParams.email}</span>.
+          <span className="font-semibold">{email}</span>.
           <br />
           Please check your inbox and click the link to continue.
         </p>
         <p className="text-sm text-amber-300">
           Didn&apos;t get the email?{" "}
           <Link
-            href="/resend-verification"
+            href={`/resend-verification?email=${encodeURIComponent(email)}${redirect ? `&redirect=${encodeURIComponent(redirect)}` : ""}`}
             className="underline hover:text-amber-200"
           >
             Resend

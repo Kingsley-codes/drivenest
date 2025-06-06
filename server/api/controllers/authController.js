@@ -74,7 +74,10 @@ export const registerUser = async (req, res, next) => {
         const verificationToken = createEmailVerificationToken(newUser);
         await newUser.save({ validateBeforeSave: false });
 
-        const verificationUrl = `${req.protocol}://${req.get('host')}/api/auth/email-verified/${verificationToken}`;
+        // Get redirect path from cookie or use default
+        const redirectPath = req.cookies.preRegisterPath || "/";
+
+        const verificationUrl = `${req.protocol}://${req.get('host')}/api/auth/email-verified/${verificationToken}?redirect=${encodeURIComponent(redirectPath)}`;
 
         await sendEmail({
             to: newUser.email,
@@ -82,6 +85,9 @@ export const registerUser = async (req, res, next) => {
             html: getVerificationEmailTemplate(verificationUrl)
 
         });
+
+        // Clear the redirect cookie after using it
+        res.cookie('preRegisterPath', '', { expires: new Date(0) });
 
         // Respond without logging in the user (require email verification first)
         res.status(201).json({
@@ -92,7 +98,7 @@ export const registerUser = async (req, res, next) => {
                     id: newUser._id,
                     email: newUser.email,
                     username: newUser.username
-                }
+                },
             }
         });
     } catch (err) {
@@ -128,7 +134,10 @@ export const verifyEmail = async (req, res, next) => {
         user.emailVerificationExpires = undefined;
         await user.save();
 
-        res.redirect(`/email-verified?status=success&userId=${user._id}`);
+        // Get redirect path from query parameter
+        const redirectPath = req.query.redirect || "/";
+
+        res.redirect(`/email-verified?status=success&userId=${user._id}&redirect=${encodeURIComponent(redirectPath)}`);
     } catch (err) {
         res.status(500).json({
             status: 'error',
