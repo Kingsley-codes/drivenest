@@ -6,11 +6,16 @@ export const metadata: Metadata = {
   title: "Verify Your Email",
 };
 
+interface VerifyEmailPageProps {
+  searchParams: {
+    email?: string;
+    redirect?: string;
+  };
+}
+
 export default function VerifyEmailPage({
   searchParams,
-}: {
-  searchParams: { email?: string; redirect?: string };
-}) {
+}: VerifyEmailPageProps) {
   const email = searchParams.email;
   const redirect = searchParams.redirect;
 
