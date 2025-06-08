@@ -6,6 +6,7 @@ import { sendEmail } from '../utils/email.js';
 import passport from 'passport';
 import { getVerificationEmailTemplate } from '../templates/verificationEmail.js';
 import { createSendToken } from '../utils/createSendToken.js';
+import { getVerificationSentTemplate, getVerificationSuccessTemplate } from '../templates/verificationPages.js';
 
 
 
@@ -30,6 +31,17 @@ const createEmailVerificationToken = (user) => {
 
     return verificationToken;
 };
+
+// Add these new controllers
+export const showVerificationSentPage = (req, res) => {
+    res.send(getVerificationSentTemplate());
+};
+
+export const showVerificationSuccessPage = (req, res) => {
+    const redirectUrl = req.query.redirect || '/';
+    res.send(getVerificationSuccessTemplate(redirectUrl));
+};
+
 
 // Auth controllers
 export const registerUser = async (req, res, next) => {
@@ -123,10 +135,10 @@ export const verifyEmail = async (req, res, next) => {
         });
 
         if (!user) {
-            return res.status(400).json({
-                status: 'fail',
-                message: 'Token is invalid or has expired'
-            });
+            return res.status(400).json(`
+        <h1>Verification Failed</h1>
+        <p>The verification link is invalid or has expired.</p>
+      `);
         }
 
         user.isEmailVerified = true;
@@ -137,12 +149,12 @@ export const verifyEmail = async (req, res, next) => {
         // Get redirect path from query parameter
         const redirectPath = req.query.redirect || "/";
 
-        res.redirect(`/email-verified?status=success&userId=${user._id}&redirect=${encodeURIComponent(redirectPath)}`);
+        res.redirect(`/api/auth/verification-success?redirect=${encodeURIComponent(redirectPath)}`);
     } catch (err) {
-        res.status(500).json({
-            status: 'error',
-            message: err.message
-        });
+        res.status(500).json(`
+      <h1>Error</h1>
+      <p>An error occurred during verification.</p>
+    `);
     }
 };
 
@@ -290,6 +302,8 @@ export default {
     handleGoogleLogin,
     googleAuthCallback,
     facebookAuthCallback,
+    showVerificationSentPage,
+    showVerificationSuccessPage,
     loginUser,
     checkAuth,
     logoutUser
