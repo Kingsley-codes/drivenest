@@ -7,7 +7,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export const sendEmail = async ({ to, subject, html }) => {
     try {
         const response = await resend.emails.send({
-            from: 'My App <onboarding@resend.dev>', // Dev sender
+            from: 'https://drivenest-se33.onrender.com', // Dev sender
             to,
             subject,
             html,
