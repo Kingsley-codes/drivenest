@@ -88,7 +88,9 @@ export default function RegisterPage() {
       });
 
       // Redirect to email verification page
-      router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
+      router.push(
+        `/api/auth/verification-sent?email=${encodeURIComponent(formData.email)}`
+      );
     } catch (err) {
       if (axios.isAxiosError(err)) {
         const responseData = err.response?.data;
