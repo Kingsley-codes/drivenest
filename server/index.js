@@ -39,17 +39,20 @@ app.prepare().then(async () => {
     server.use(passport.initialize());
 
 
-    // Helmet middleware - PRODUCTION ONLY
-    if (process.env.NODE_ENV === 'development') {
-        server.use(
-            helmet({
-                contentSecurityPolicy: false,
-                crossOriginEmbedderPolicy: false,
-            })
-        );
-    } else {
-        server.use(helmet());
-    }
+    // ===== FIX 1: CSP & Helmet Configuration =====
+    server.use(
+        helmet({
+            contentSecurityPolicy: {
+                directives: {
+                    ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+                    "script-src": ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // Allow inline scripts (Next.js needs this)
+                    "connect-src": ["'self'", "https://drivenest-se33.onrender.com"], // Allow WebSocket connections
+                },
+            },
+            crossOriginEmbedderPolicy: false, // Disable COEP (Next.js needs this)
+        })
+    );
+
 
     // Apply rate limiting to API routes
     server.use('/api', limiter);
