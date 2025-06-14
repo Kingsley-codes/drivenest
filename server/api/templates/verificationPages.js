@@ -1,5 +1,5 @@
 export const getVerificationSentTemplate = () => {
-    return `
+  return `
       <!DOCTYPE html>
       <html lang="en">
       <head>
@@ -7,10 +7,10 @@ export const getVerificationSentTemplate = () => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Email Verification Sent</title>
         <style>
-          body { font-family: Arial, sans-serif; text-align: center; padding: 40px; background-color: #f5f5f5; }
-          .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-          h1 { color: #333; }
-          p { color: #666; font-size: 18px; }
+          body { font-family: Arial, sans-serif; text-align: center; padding: 40px; background-color: #101828; }
+          .container { max-width: 600px; margin: 0 auto; background: #1e2939; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+          h1 { color: #fbbf24; }
+          p { color: #fcd34d; font-size: 18px; }
           .icon { font-size: 60px; color: #4CAF50; margin-bottom: 20px; }
         </style>
       </head>
@@ -27,7 +27,7 @@ export const getVerificationSentTemplate = () => {
 };
 
 export const getVerificationSuccessTemplate = (redirectUrl) => {
-    return `
+  return `
       <!DOCTYPE html>
       <html lang="en">
       <head>
@@ -35,10 +35,10 @@ export const getVerificationSuccessTemplate = (redirectUrl) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Email Verified</title>
         <style>
-          body { font-family: Arial, sans-serif; text-align: center; padding: 40px; background-color: #f5f5f5; }
-          .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-          h1 { color: #4CAF50; }
-          p { color: #666; font-size: 18px; }
+          body { font-family: Arial, sans-serif; text-align: center; padding: 40px; background-color: #101828; }
+          .container { max-width: 600px; margin: 0 auto; background: #1e2939; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+          h1 { color: #fbbf24; }
+          p { color: #fcd34d; font-size: 18px; }
           .icon { font-size: 60px; color: #4CAF50; margin-bottom: 20px; }
           .redirect-notice { margin-top: 30px; font-style: italic; color: #888; }
         </style>

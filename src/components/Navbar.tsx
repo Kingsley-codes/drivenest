@@ -8,6 +8,7 @@ import { usePathname, useRouter } from "next/navigation";
 import axios from "axios";
 import { useAuthQuery } from "../../lib/hooks/useAuthQuery";
 import { useQueryClient } from "@tanstack/react-query";
+import { showErrorToast, showSuccessToast } from "../../lib/toast";
 
 export default function Navbar() {
   const router = useRouter();
@@ -34,13 +35,28 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     try {
-      await axios.post("/api/auth/logout", {}, { withCredentials: true });
-      // Clear the auth query cache
-      await queryClient.invalidateQueries({ queryKey: ["auth"] });
-      setUserDropdownOpen(false);
-      router.push("/");
+      const response = await axios.post(
+        "/api/auth/logout",
+        {},
+        { withCredentials: true }
+      );
+
+      if (response.status === 200) {
+        showSuccessToast("Logged out successfully");
+
+        setTimeout(async () => {
+          // Clear the auth query cache
+          await queryClient.invalidateQueries({ queryKey: ["auth"] });
+
+          setUserDropdownOpen(false);
+
+          // Wait 1 second before redirecting
+          router.push("/");
+        }, 1000);
+      }
     } catch (error) {
       console.error("Logout failed:", error);
+      showErrorToast("Logout failed");
     }
   };
 

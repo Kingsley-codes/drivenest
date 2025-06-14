@@ -288,7 +288,7 @@ export const loginUser = async (req, res, next) => {
 
 // Logout controller
 export const logoutUser = (req, res) => {
-    res.cookie('jwt', 'loggedout', {
+    res.cookie('jwt', {
         expires: new Date(Date.now() + 10 * 1000), // 10 seconds
         httpOnly: true
     });
