@@ -8,18 +8,21 @@ export const getVerificationEmailTemplate = (verificationUrl) => emailLayout(`
   </p>
   <div style="text-align: center; margin: 30px 0;">
     <a href="${verificationUrl}" 
-       style="display: inline-block; padding: 12px 24px; background-color: #2563eb; color: #fcd34d; 
+       style="display: inline-block; padding: 12px 24px; background-color: #2563eb; color: white; 
               text-decoration: none; border-radius: 4px; font-weight: bold;">
       Verify Email Address
     </a>
   </div>
-  <p style="font-size: 14px; color: #fcd34d; margin-top: 20px; line-height: 1.5;">
+  <br />
+  <br />
+
+  <p style="font-size: 12px; color: #fcd34d; margin-top: 20px; line-height: 1.5;">
     If the button doesn't work, you can also verify your email by clicking on the link below:
   </p>
-  <p style="font-size: 14px; color: #fcd34d; margin-top: 10px;">
+  <p style="font-size: 12px; color: #fcd34d; margin-top: 10px;">
     <a href="${verificationUrl}" style="color: #2563eb; text-decoration: underline;">${verificationUrl}</a>
   </p>
-  <p style="font-size: 14px; color: #fcd34d; margin-top: 20px; line-height: 1.5;">
+  <p style="font-size: 12px; color: #fcd34d; margin-top: 20px; line-height: 1.5; font-style: italic;">
     This link will expire in 24 hours. If you didn't request this, please ignore this email.
   </p>
   </div>
