@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { CldImage, CldVideoPlayer } from "next-cloudinary";
+import { CldImage } from "next-cloudinary";
 import { useEffect, useState } from "react";
 
 const slides = [
@@ -11,15 +11,13 @@ const slides = [
     type: "video" as const,
     header: "Experience Luxury in Motion",
     caption: "Drive the epitome of luxury—where prestige meets perfection.",
-    aspectRatio: "16:9",
   },
   {
     id: 2,
-    media: "lsntidemkzy6x1bpzpio",
+    media: "jj4cgofyzpzcyk8sr3qm",
     type: "video" as const,
     header: "Ignite Your Senses",
     caption: "Feel the adrenaline. Rent or drive home a legend today.",
-    aspectRatio: "16:9",
   },
   {
     id: 3,
@@ -30,11 +28,10 @@ const slides = [
   },
   {
     id: 4,
-    media: "y6trd4nzpn9d1ne2un9w",
+    media: "hznh6bwydofl3rbrtidf",
     type: "video" as const,
     header: "Unmatched Elegance, Unrivaled Performance",
     caption: "Command every journey in style and sophistication.",
-    aspectRatio: "16:9",
   },
   {
     id: 5,
@@ -51,7 +48,6 @@ const slides = [
     header: "Your Dream Car Awaits",
     caption:
       "Rent or own the finest selection of luxury vehicles. Start your journey now.",
-    aspectRatio: "16:9",
   },
 ];
 
@@ -93,19 +89,13 @@ export default function Hero() {
                   />
                 ) : (
                   <div className="absolute inset-0 w-full h-full">
-                    <CldVideoPlayer
-                      src={slide.media}
-                      width={1920}
-                      height={1080}
-                      autoplay
+                    <video
+                      autoPlay
                       loop
                       muted
-                      playsinline
-                      transformation={{
-                        startOffset: "0",
-                        endOffset: "8",
-                      }}
-                      className="w-full h-full"
+                      playsInline
+                      className="absolute inset-0 w-full h-full object-cover"
+                      src={`https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/video/upload/${slide.media}.mp4`}
                     />
                   </div>
                 )}

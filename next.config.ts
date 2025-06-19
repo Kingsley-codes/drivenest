@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
               font-src 'self' https://fonts.gstatic.com;
               img-src 'self' data: blob: https://res.cloudinary.com;
               media-src 'self' blob: https://res.cloudinary.com;
-              connect-src 'self' https://analytics-api-s.cloudinary.com https://res.cloudinary.com;
+              connect-src 'self' https://analytics-api-s.cloudinary.com https://res.cloudinary.com https://video-analytics-api.cloudinary.com;
               frame-src 'self' https://player.cloudinary.com;
               worker-src 'self' blob:;
             `
