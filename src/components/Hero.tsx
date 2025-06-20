@@ -2,7 +2,9 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { CldImage } from "next-cloudinary";
+import Link from "next/link";
 import { useEffect, useState } from "react";
+import SecondNav from "./SecondNav";
 
 const slides = [
   {
@@ -63,7 +65,8 @@ export default function Hero() {
   }, [slides.length]);
 
   return (
-    <div className="relative h-screen w-full overflow-hidden">
+    <div className="relative min-h-[70vh] sm:min-h-[80vh] md:h-screen w-full overflow-hidden">
+      <SecondNav />
       <AnimatePresence mode="wait">
         {slides.map(
           (slide, index) =>
@@ -125,12 +128,27 @@ export default function Hero() {
                     transition={{ delay: 0.9, duration: 0.8 }}
                     className="flex gap-4"
                   >
-                    <button className="px-8 py-3 bg-amber-500 hover:bg-amber-600 rounded-lg font-semibold transition-all">
-                      Rent Now
-                    </button>
-                    <button className="px-8 py-3 bg-transparent border-2 border-white hover:bg-white hover:text-black rounded-lg font-semibold transition-all">
-                      Browse Collection
-                    </button>
+                    <div className="mt-9 pt-5 flex gap-5">
+                      {[2, 5, 6].includes(slide.id) ? (
+                        <Link href="/rentals">
+                          <button className="px-8 py-3 bg-amber-400 hover:bg-amber-500 rounded-lg font-semibold transition-all">
+                            Rent
+                          </button>
+                        </Link>
+                      ) : (
+                        <Link href="/sales">
+                          <button className="px-8 py-3 bg-amber-400 hover:bg-amber-500 rounded-lg font-semibold transition-all">
+                            Buy Now
+                          </button>
+                        </Link>
+                      )}
+
+                      <Link href="/collections">
+                        <button className="px-8 py-3 bg-transparent border-2 border-white hover:bg-white hover:text-black rounded-lg font-semibold transition-all">
+                          Browse Collection
+                        </button>
+                      </Link>
+                    </div>
                   </motion.div>
                 </div>
               </motion.div>

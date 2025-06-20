@@ -87,14 +87,14 @@ export default function SecondNav() {
   };
 
   return (
-    <nav className="bg-gray-800 md:block hidden text-white">
+    <nav className="bg-transparent absolute top-0 left-0 w-full z-20 md:block hidden text-white">
       <ul className="flex pt-4 justify-center border-t border-amber-300 space-x-6">
         {Object.keys(categories).map((category) => (
           <li
             key={category}
             className="relative group"
             onMouseEnter={() => handleMouseEnter(category)}
-            onMouseLeave={() => handleMouseLeave}
+            onMouseLeave={handleMouseLeave}
           >
             <div className="px-4 py-2 hover:bg-gray-700 rounded-md transition-colors duration-200 flex items-center cursor-pointer">
               {category}
