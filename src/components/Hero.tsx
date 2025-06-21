@@ -86,7 +86,7 @@ export default function Hero() {
                     fill
                     priority
                     sizes="100vw"
-                    className="absolute inset-0 object-cover"
+                    className="absolute inset-0 object-contain"
                     quality="auto"
                     format="auto"
                   />

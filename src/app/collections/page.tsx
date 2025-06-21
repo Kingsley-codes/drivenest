@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import axios from "axios";
 import { GiCancel } from "react-icons/gi";
+import CarCard from "@/components/ui/CarCard";
 
 type CarType = "regular" | "luxury" | "electric";
 type ModelCategory =
@@ -460,85 +461,22 @@ export default function CollectionsPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredCars.map((car) => (
-                <div
+                <CarCard
                   key={car._id}
-                  className="bg-gray-800 rounded-lg overflow-hidden flex flex-col h-full"
-                >
-                  <Link
-                    href={`/collections/${car._id}`}
-                    className="flex flex-col h-full"
-                  >
-                    {/* Image container with fixed aspect ratio */}
-                    <div className="relative pt-[80%]">
-                      <div className="pb-2 pt-4 w-full absolute top-0 pl-4 ">
-                        <h3 className="text-xl font-semibold">{car.brand}</h3>
-                        <h3 className="text-md font-semibold">{car.model}</h3>
-                      </div>
-                      {car.images?.[0] && (
-                        <Image
-                          src={car.images[0]}
-                          alt={`${car.brand} ${car.model}`}
-                          width={500}
-                          height={300}
-                          className="object-cover absolute bottom-0 left-0"
-                          priority={false}
-                        />
-                      )}
-                      <div className="absolute top-2 right-2 bg-gray-950 bg-opacity-70 text-amber-400 px-2 py-1 rounded text-sm">
-                        {car.year}
-                      </div>
-                    </div>
-
-                    {/* Text content with consistent padding and fixed height */}
-                    <div className="p-4 pt-9 flex-grow flex flex-col">
-                      <div className="mt-auto">
-                        <div className="flex justify-between gap-1 items-center">
-                          <div>
-                            {car.forSale && (
-                              <p className="font-bold text-sm">
-                                Sale: ${car.salesPrice?.toLocaleString()}
-                              </p>
-                            )}
-                            {car.forRent && (
-                              <p className="font-bold text-sm">
-                                Rent: ${car.rentalPrice}/day
-                              </p>
-                            )}
-                          </div>
-                          <div className="text-sm flex gap-1">
-                            {car.forRent && (
-                              <span
-                                className={`px-2 py-1 rounded ${
-                                  car.isAvailable
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-red-100 text-red-800"
-                                }`}
-                              >
-                                {car.isAvailable ? "Available" : "Unavailable"}
-                              </span>
-                            )}
-                            {car.forSale && (
-                              <span
-                                className={`px-2 py-1 rounded ${
-                                  car.inStock
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-red-100 text-red-800"
-                                }`}
-                              >
-                                {car.inStock ? "In Stock" : "Out of Stock"}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="mb-2">
-                          <p className="text-gray-400 text-sm capitalize">
-                            {car.modelCategory.toLowerCase()} • {car.carType}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                </div>
+                  _id={car._id}
+                  brand={car.brand}
+                  model={car.model}
+                  year={car.year}
+                  carType={car.carType}
+                  modelCategory={car.modelCategory}
+                  images={car.images}
+                  salesPrice={car.salesPrice}
+                  rentalPrice={car.rentalPrice}
+                  inStock={car.inStock}
+                  isAvailable={car.isAvailable}
+                  forSale={car.forSale}
+                  forRent={car.forRent}
+                />
               ))}
             </div>
           )}
