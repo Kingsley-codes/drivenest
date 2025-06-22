@@ -45,7 +45,6 @@ export default function HorizontalScroll({
       return index % cars.length;
     };
 
-    const cardCount = isMobile ? 3 : 5;
     const offset = isMobile ? 1 : 2;
 
     const newVisibleCards = [];
