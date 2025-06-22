@@ -62,7 +62,7 @@ export default function Hero() {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
     }, 8000);
     return () => clearInterval(interval);
-  }, [slides.length]);
+  }, []);
 
   return (
     <div className="relative min-h-[70vh] sm:min-h-[80vh] md:h-screen w-full overflow-hidden">

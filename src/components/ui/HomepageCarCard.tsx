@@ -21,11 +21,6 @@ export default function HomepageCarCard({
   onHover,
   isHovered,
 }: CarCardProps) {
-  // Type guard functions
-  const isRentalCar = (car: RentalCar | SaleCar): car is RentalCar => {
-    return "forRent" in car;
-  };
-
   // Determine the scale based on hover and center status
   const getScale = () => {
     if (isHovered) return "scale-125 z-20"; // Hovered card gets magnified

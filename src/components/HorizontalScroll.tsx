@@ -44,7 +44,7 @@ export default function HorizontalScroll({
   }, [cars, centerIndex]);
 
   const scrollToCenter = (index: number) => {
-    setCenterIndex((prev) => {
+    setCenterIndex(() => {
       // Handle circular navigation
       if (index < 0) return cars.length - 1;
       if (index >= cars.length) return 0;

@@ -10,13 +10,13 @@ export default function Introduction() {
           </h2>
           <p className="text-lg text-white ">
             At DriveNest, we don&apos;t just offer cars — we deliver experiences
-            that define class, comfort, and thrill. Whether you're renting for a
-            special weekend or looking to own a vehicle that speaks volumes, our
-            handpicked collection of luxury and exotic cars is built to impress.
-            From the timeless sophistication of a Rolls-Royce to the
-            pulse-quickening power of a Ferrari, DriveNest connects you to the
-            world&apos;s most coveted machines. We&apos;re here for those who
-            value performance, precision, and presence — for those who move
+            that define class, comfort, and thrill. Whether you&apos;re renting
+            for a special weekend or looking to own a vehicle that speaks
+            volumes, our handpicked collection of luxury and exotic cars is
+            built to impress. From the timeless sophistication of a Rolls-Royce
+            to the pulse-quickening power of a Ferrari, DriveNest connects you
+            to the world&apos;s most coveted machines. We&apos;re here for those
+            who value performance, precision, and presence — for those who move
             differently. Rent it. Own it. Either way, arrive in style, command
             attention, and enjoy the drive.
           </p>
