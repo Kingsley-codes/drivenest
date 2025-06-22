@@ -16,24 +16,26 @@ export default function HorizontalScroll({
   subtitle,
 }: HorizontalScrollProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [centerIndex, setCenterIndex] = useState(2); // Start with middle card (index 2)
+  const [centerIndex, setCenterIndex] = useState(1); // Start with middle card
   const [showArrows, setShowArrows] = useState({ left: true, right: true });
   const [visibleCards, setVisibleCards] = useState<Car[]>([]);
   const [hoveredCardIndex, setHoveredCardIndex] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState(false);
-  const [touchStart, setTouchStart] = useState(0);
-  const [touchEnd, setTouchEnd] = useState(0);
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
 
   // Check if mobile on mount and resize
   useEffect(() => {
     const checkIfMobile = () => {
       setIsMobile(window.innerWidth < 768);
+      // Reset center index when switching between mobile and desktop
+      setCenterIndex(isMobile ? 1 : 2);
     };
 
     checkIfMobile();
     window.addEventListener("resize", checkIfMobile);
     return () => window.removeEventListener("resize", checkIfMobile);
-  }, []);
+  }, [isMobile]);
 
   // Create a circular array of cards with center in the middle
   useEffect(() => {
@@ -46,8 +48,8 @@ export default function HorizontalScroll({
     };
 
     const offset = isMobile ? 1 : 2;
-
     const newVisibleCards = [];
+
     for (let i = -offset; i <= offset; i++) {
       newVisibleCards.push(cars[getCardIndex(centerIndex + i)]);
     }
@@ -85,20 +87,23 @@ export default function HorizontalScroll({
 
   // Touch event handlers for swipe gestures
   const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.targetTouches[0].clientX);
+    touchStartX.current = e.targetTouches[0].clientX;
+    e.stopPropagation(); // Prevent scrolling the entire page
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
+    touchEndX.current = e.targetTouches[0].clientX;
+    e.stopPropagation(); // Prevent scrolling the entire page
   };
 
   const handleTouchEnd = () => {
-    if (touchStart - touchEnd > 50) {
+    const threshold = 50;
+    const difference = touchStartX.current - touchEndX.current;
+
+    if (difference > threshold) {
       // Swipe left
       scrollRight();
-    }
-
-    if (touchStart - touchEnd < -50) {
+    } else if (difference < -threshold) {
       // Swipe right
       scrollLeft();
     }
@@ -129,25 +134,32 @@ export default function HorizontalScroll({
 
           <div
             ref={containerRef}
-            className="flex justify-center items-center gap-4 touch-pan-x px-4 py-6 md:px-12"
+            className="flex justify-start md:justify-center overflow-x-auto no-scrollbar items-center gap-4 touch-pan-x px-4 py-6 md:px-12 snap-x snap-mandatory"
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            style={{
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+              WebkitOverflowScrolling: "touch",
+            }}
           >
             {visibleCards.map((car, index) => (
-              <HomepageCarCard
+              <div
                 key={`${car._id}-${index}`}
-                car={car}
-                isCenter={index === (isMobile ? 1 : 2)}
-                isAnyCardHovered={hoveredCardIndex !== null}
-                onHover={(isHovered) =>
-                  setHoveredCardIndex(isHovered ? index : null)
-                }
-                isHovered={hoveredCardIndex === index}
-                displayMode={title.includes("Rental") ? "rental" : "sale"}
-                className={isMobile ? "min-w-[280px]" : ""}
-              />
+                className={`snap-center ${isMobile ? "min-w-[85vw]" : "min-w-[320px]"}`}
+              >
+                <HomepageCarCard
+                  car={car}
+                  isCenter={index === (isMobile ? 1 : 2)}
+                  isAnyCardHovered={hoveredCardIndex !== null}
+                  onHover={(isHovered) =>
+                    setHoveredCardIndex(isHovered ? index : null)
+                  }
+                  isHovered={hoveredCardIndex === index}
+                  displayMode={title.includes("Rental") ? "rental" : "sale"}
+                />
+              </div>
             ))}
           </div>
 
