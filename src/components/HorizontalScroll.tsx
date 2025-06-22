@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import HomepageCarCard from "./ui/HomepageCarCard";
 import { Car } from "./types/car";
@@ -20,8 +20,22 @@ export default function HorizontalScroll({
   const [showArrows, setShowArrows] = useState({ left: true, right: true });
   const [visibleCards, setVisibleCards] = useState<Car[]>([]);
   const [hoveredCardIndex, setHoveredCardIndex] = useState<number | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
 
-  // Create a circular array of 5 cards with center in the middle
+  // Check if mobile on mount and resize
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkIfMobile();
+    window.addEventListener("resize", checkIfMobile);
+    return () => window.removeEventListener("resize", checkIfMobile);
+  }, []);
+
+  // Create a circular array of cards with center in the middle
   useEffect(() => {
     if (cars.length === 0) return;
 
@@ -31,42 +45,65 @@ export default function HorizontalScroll({
       return index % cars.length;
     };
 
-    // Always show 5 cards (center + 2 on each side)
-    const newVisibleCards = [
-      cars[getCardIndex(centerIndex - 2)],
-      cars[getCardIndex(centerIndex - 1)],
-      cars[getCardIndex(centerIndex)],
-      cars[getCardIndex(centerIndex + 1)],
-      cars[getCardIndex(centerIndex + 2)],
-    ];
+    const cardCount = isMobile ? 3 : 5;
+    const offset = isMobile ? 1 : 2;
+
+    const newVisibleCards = [];
+    for (let i = -offset; i <= offset; i++) {
+      newVisibleCards.push(cars[getCardIndex(centerIndex + i)]);
+    }
 
     setVisibleCards(newVisibleCards);
-  }, [cars, centerIndex]);
+  }, [cars, centerIndex, isMobile]);
 
-  const scrollToCenter = (index: number) => {
-    setCenterIndex(() => {
-      // Handle circular navigation
-      if (index < 0) return cars.length - 1;
-      if (index >= cars.length) return 0;
-      return index;
-    });
-  };
+  const scrollToCenter = useCallback(
+    (index: number) => {
+      setCenterIndex(() => {
+        // Handle circular navigation
+        if (index < 0) return cars.length - 1;
+        if (index >= cars.length) return 0;
+        return index;
+      });
+    },
+    [cars.length]
+  );
 
-  const scrollLeft = () => {
+  const scrollLeft = useCallback(() => {
     scrollToCenter(centerIndex - 1);
-  };
+  }, [centerIndex, scrollToCenter]);
 
-  const scrollRight = () => {
+  const scrollRight = useCallback(() => {
     scrollToCenter(centerIndex + 1);
-  };
+  }, [centerIndex, scrollToCenter]);
 
   // Update arrow visibility based on position
   useEffect(() => {
     setShowArrows({
-      left: cars.length > 1,
-      right: cars.length > 1,
+      left: cars.length > (isMobile ? 1 : 2),
+      right: cars.length > (isMobile ? 1 : 2),
     });
-  }, [cars.length]);
+  }, [cars.length, isMobile]);
+
+  // Touch event handlers for swipe gestures
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStart - touchEnd > 50) {
+      // Swipe left
+      scrollRight();
+    }
+
+    if (touchStart - touchEnd < -50) {
+      // Swipe right
+      scrollLeft();
+    }
+  };
 
   return (
     <div className="py-12">
@@ -93,19 +130,24 @@ export default function HorizontalScroll({
 
           <div
             ref={containerRef}
-            className="flex justify-center items-center gap-4 py-6 px-12"
+            className="flex justify-center items-center gap-4 touch-pan-x px-4 py-6 md:px-12"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           >
             {visibleCards.map((car, index) => (
               <HomepageCarCard
                 key={`${car._id}-${index}`}
                 car={car}
-                isCenter={index === 2}
+                isCenter={index === (isMobile ? 1 : 2)}
                 isAnyCardHovered={hoveredCardIndex !== null}
                 onHover={(isHovered) =>
                   setHoveredCardIndex(isHovered ? index : null)
                 }
                 isHovered={hoveredCardIndex === index}
                 displayMode={title.includes("Rental") ? "rental" : "sale"}
+                className={isMobile ? "min-w-[280px]" : ""}
               />
             ))}
           </div>

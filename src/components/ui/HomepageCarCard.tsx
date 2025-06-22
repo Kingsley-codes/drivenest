@@ -11,6 +11,7 @@ interface CarCardProps {
   isAnyCardHovered: boolean;
   onHover: (isHovered: boolean) => void;
   isHovered: boolean;
+  className?: string;
 }
 
 export default function HomepageCarCard({
@@ -35,7 +36,7 @@ export default function HomepageCarCard({
       onMouseLeave={() => onHover(false)}
     >
       <div
-        className={`bg-gray-800 rounded-lg overflow-hidden flex flex-col h-66 mx-2 w-[240px] sm:w-[270px] ${
+        className={`bg-gray-800 rounded-lg overflow-hidden flex flex-col h-60 sm:h-66 mx-2 w-[220px] sm:w-[270px] ${
           isHovered || (!isAnyCardHovered && isCenter)
             ? "shadow-xl shadow-amber-400/30"
             : ""
