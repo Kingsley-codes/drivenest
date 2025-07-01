@@ -36,6 +36,7 @@ export default function RentalCollection() {
       cars={rentalCars}
       title="Premium Rentals"
       subtitle="Experience luxury with our exclusive rental collection"
+      displayMode="rental"
     />
   );
 }

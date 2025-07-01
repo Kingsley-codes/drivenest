@@ -36,6 +36,7 @@ export default function SalesCollection() {
       cars={salesCars}
       title="Exclusive Sales"
       subtitle="Own a piece of automotive excellence with our curated collection"
+      displayMode="sale"
     />
   );
 }
