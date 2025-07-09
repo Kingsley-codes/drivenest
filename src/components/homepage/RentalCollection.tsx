@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import HorizontalScroll from "./HorizontalScroll";
-import { RentalCar } from "./types/car";
+import { RentalCar } from "../types/car";
 
 export default function RentalCollection() {
   const [rentalCars, setRentalCars] = useState<RentalCar[]>([]);

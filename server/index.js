@@ -40,18 +40,34 @@ app.prepare().then(async () => {
 
 
     // ===== FIX 1: CSP & Helmet Configuration =====
+    // server.use(
+    //     helmet({
+    //         contentSecurityPolicy: {
+    //             directives: {
+    //                 ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+    //                 "script-src": ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // Allow inline scripts (Next.js needs this)
+    //                 "connect-src": ["'self'", "https://drivenest-se33.onrender.com"], // Allow WebSocket connections
+    //             },
+    //         },
+    //         crossOriginEmbedderPolicy: false, // Disable COEP (Next.js needs this)
+    //     })
+    // );
+
     server.use(
         helmet({
             contentSecurityPolicy: {
                 directives: {
                     ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-                    "script-src": ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // Allow inline scripts (Next.js needs this)
-                    "connect-src": ["'self'", "https://drivenest-se33.onrender.com"], // Allow WebSocket connections
+                    "script-src": dev
+                        ? ["'self'", "'unsafe-inline'", "'unsafe-eval'"]
+                        : ["'self'"],
+                    "connect-src": ["'self'", "https://drivenest-se33.onrender.com"],
                 },
             },
-            crossOriginEmbedderPolicy: false, // Disable COEP (Next.js needs this)
+            crossOriginEmbedderPolicy: false,
         })
     );
+
 
 
     // Apply rate limiting to API routes

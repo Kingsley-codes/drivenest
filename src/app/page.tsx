@@ -1,7 +1,8 @@
-import Hero from "@/components/Hero";
-import Introduction from "@/components/Introduction";
-import RentalCollection from "@/components/RentalCollection";
-import SalesCollection from "@/components/SalesCollection";
+import Hero from "@/components/homepage/Hero";
+import Introduction from "@/components/homepage/Introduction";
+import RentalCollection from "@/components/homepage/RentalCollection";
+import Reviews from "@/components/homepage/Reviews";
+import SalesCollection from "@/components/homepage/SalesCollection";
 
 export default function HomePage() {
   return (
@@ -10,7 +11,7 @@ export default function HomePage() {
       <Introduction />
       <SalesCollection />
       <RentalCollection />
-      {/* reviews */}
+      <Reviews />
     </main>
   );
 }

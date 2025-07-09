@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import HorizontalScroll from "./HorizontalScroll";
-import { SaleCar } from "./types/car";
+import { SaleCar } from "../types/car";
 
 export default function SalesCollection() {
   const [salesCars, setSalesCars] = useState<SaleCar[]>([]);

@@ -3,7 +3,7 @@ import { useState, ChangeEvent, FormEvent } from "react";
 import { toast } from "react-toastify";
 import { useMutation } from "@tanstack/react-query";
 import "react-toastify/dist/ReactToastify.css";
-import ImageUpload from "@/components/ImageUpload";
+import ImageUpload from "@/components/homepage/ImageUpload";
 import axios from "axios";
 
 type CarType = "regular" | "luxury" | "electric";

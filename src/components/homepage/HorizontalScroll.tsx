@@ -2,8 +2,10 @@
 "use client";
 import { useRef, useState } from "react";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
-import HomepageCarCard from "./ui/HomepageCarCard";
-import { Car } from "./types/car";
+import { FaArrowRight } from "react-icons/fa";
+import Link from "next/link";
+import { Car } from "../types/car";
+import HomepageCarCard from "../ui/HomepageCarCard";
 
 interface HorizontalScrollProps {
   cars: Car[];
@@ -41,6 +43,9 @@ export default function HorizontalScroll({
       behavior: "smooth",
     });
   };
+
+  // Determine the "More" link based on displayMode
+  const moreLink = displayMode === "sale" ? "/sales" : "/rentals";
 
   return (
     <div className="py-12">
@@ -82,6 +87,16 @@ export default function HorizontalScroll({
                 />
               ))}
             </div>
+          </div>
+
+          <div className="w-full flex items-center justify-end">
+            <Link
+              href={moreLink}
+              className="text-amber-400 hover:border-b hover:rounded-md px-2 flex items-center gap-1.5"
+            >
+              More
+              <FaArrowRight />
+            </Link>
           </div>
 
           {showRightArrow && (
