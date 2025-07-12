@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FiBell, FiSearch } from "react-icons/fi";
+import { FiBell } from "react-icons/fi";
 
 export default function Header() {
   return (

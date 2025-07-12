@@ -50,7 +50,7 @@ export default function UserDashboard() {
             Welcome back, {user.name.split(" ")[0]}!
           </h1>
           <p className="text-gray-600">
-            Here's your current activity and vehicles
+            Here&apos;s your current activity and vehicles
           </p>
 
           {/* Quick Stats */}

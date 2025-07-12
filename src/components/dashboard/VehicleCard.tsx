@@ -13,7 +13,6 @@ export default function VehicleCard({
   name,
   type,
   price,
-  image,
 }: VehicleCardProps) {
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">

@@ -6,11 +6,9 @@ import {
   FiUser,
   FiFileText,
   FiSettings,
-  FiDollarSign,
   FiMessageSquare,
   FiTrendingUp,
   FiCreditCard,
-  FiMail,
 } from "react-icons/fi";
 
 interface NavItem {

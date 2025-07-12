@@ -8,7 +8,6 @@ import {
   FiClock,
   FiSettings,
   FiMessageSquare,
-  FiAlertCircle,
 } from "react-icons/fi";
 
 interface NavItem {

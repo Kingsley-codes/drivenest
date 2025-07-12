@@ -14,7 +14,9 @@ export default function Reviews() {
         {/* Example Review */}
         <div className="p-4 border rounded-lg">
           <h3 className="font-bold">John Doe</h3>
-          <p className="text-gray-600">"Great service and amazing cars!"</p>
+          <p className="text-gray-600">
+            &quot;Great service and amazing cars!&quot;
+          </p>
           <div className="flex items-center mt-2">
             <span className="text-yellow-500">★★★★★</span>
           </div>
