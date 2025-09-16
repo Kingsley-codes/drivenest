@@ -4,37 +4,61 @@ import { Strategy as FacebookStrategy } from 'passport-facebook';
 import User from '../models/userModel.js';
 
 
+const getCallbackURL = () => {
+    if (process.env.NODE_ENV === 'production') {
+        return `${process.env.SERVER_URL}/api/auth/google/callback`;
+    }
+    return 'http://localhost:3000/api/auth/google/callback';
+};
+
 const configurePassportStrategies = () => {
     // Google Strategy
     passport.use(new GoogleStrategy({
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: 'http://localhost:3000/api/auth/google/callback',
-        passReqToCallback: true, // Add this to access req in callback
+        callbackURL: getCallbackURL(),
         scope: ['profile', 'email'],
-        proxy: true // ✅ for correct redirect behind proxies like Vercel/Next
     }, async (req, accessToken, refreshToken, profile, done) => {
         try {
-            let user = await User.findOne({ 'oauthProviders.google': profile.id });
+            let user = await User.findOne({ googleId: profile.id });
 
-            if (!user) {
-                user = await User.findOne({ email: profile.emails[0].value });
-                if (user) {
-                    user.oauthProviders.google = profile.id;
-                    await user.save();
-                } else {
-                    user = await User.create({
-                        username: profile.displayName.replace(/\s+/g, '').toLowerCase() + Math.floor(Math.random() * 1000),
-                        email: profile.emails[0].value,
-                        isEmailVerified: true,
-                        oauthProviders: { google: profile.id }
-                    });
-                }
+            if (user) {
+                // Add redirect path as temporary property
+                const userWithRedirect = {
+                    ...user.toObject(),
+                    _redirectPath: req.cookies.oauth_redirect || '/'
+                };
+                return done(null, userWithRedirect);
             }
 
-            // Store redirect path from cookie in user object
-            user.redirectPath = req.cookies.oauth_redirect || '/';
-            return done(null, user);
+            user = await User.findOne({ email: profile.emails[0].value });
+
+            if (user) {
+                user.googleId = profile.id;
+                await user.save();
+
+                const userWithRedirect = {
+                    ...user.toObject(),
+                    _redirectPath: req.cookies.oauth_redirect || '/'
+                };
+                return done(null, userWithRedirect);
+            }
+
+
+            const newUser = await User.create({
+                username: profile.displayName.replace(/\s+/g, '').toLowerCase() + Math.floor(Math.random() * 1000),
+                email: profile.emails[0].value,
+                isEmailVerified: true,
+                googleId: profile.id,
+            });
+
+            // Add redirect path as a temporary property
+            const userWithRedirect = {
+                ...newUser.toObject(),
+                _redirectPath: req.cookies.oauth_redirect || '/'
+            };
+
+            return done(null, userWithRedirect);
         } catch (err) {
             return done(err, null);
         }

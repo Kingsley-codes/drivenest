@@ -5,7 +5,7 @@ import User from '../models/userModel.js';
 import { sendEmail } from '../utils/email.js';
 import passport from 'passport';
 import { getVerificationEmailTemplate } from '../templates/verificationEmail.js';
-import { createSendToken } from '../utils/createSendToken.js';
+import { createSendToken, signToken } from '../utils/createSendToken.js';
 import { getVerificationSentTemplate, getVerificationSuccessTemplate } from '../templates/verificationPages.js';
 
 
@@ -146,8 +146,20 @@ export const verifyEmail = async (req, res, next) => {
         user.emailVerificationExpires = undefined;
         await user.save();
 
+
+        const token = signToken(user);
+        // Remove sensitive data
+        user.password = undefined;
+
         // Get redirect path from query parameter
         const redirectPath = req.query.redirect || "/";
+
+        res.cookie("jwt", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 30 * 24 * 60 * 60 * 1000 // 7 days
+        });
 
         res.redirect(`/api/auth/verification-success?redirect=${encodeURIComponent(redirectPath)}`);
     } catch (err) {
@@ -167,6 +179,7 @@ export const handleGoogleLogin = (req, res, next) => {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
+        maxAge: 15 * 60 * 1000 // 15 minutes expiration
     });
 
     passport.authenticate('google', {
@@ -175,19 +188,24 @@ export const handleGoogleLogin = (req, res, next) => {
     })(req, res, next);
 };
 
-
-// callback controllers
-
 export const googleAuthCallback = (req, res, next) => {
-    passport.authenticate("google", { session: false }, (err, user) => {
+    passport.authenticate("google", { session: false }, (err, user, info) => {
         if (err) return next(err);
         if (!user) return res.redirect("/login");
 
-        createSendToken(user, 200, req, res); // Set cookie (JWT)
+        // Extract redirect path from user object (passed through passport)
+        const redirectPath = user._redirectPath || "/";
 
-        // Redirect to original path stored in user.redirectPath
-        const redirectPath = user.redirectPath || "/";
+        // Remove the temporary redirect property
+        const userWithoutRedirect = { ...user };
+        delete userWithoutRedirect._redirectPath;
+
+        createSendToken(userWithoutRedirect, 200, req, res); // Set cookie (JWT)
+
+        // Clear the oauth_redirect cookie
         res.clearCookie("oauth_redirect", { path: "/" });
+
+        // Redirect to the original path
         res.redirect(redirectPath);
     })(req, res, next);
 };

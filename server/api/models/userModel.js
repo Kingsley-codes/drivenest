@@ -18,6 +18,11 @@ const userSchema = new mongoose.Schema(
             minlength: [3, 'Username must be at least 3 characters'],
             maxlength: [30, 'Username cannot exceed 30 characters']
         },
+        googleId: {
+            type: String,
+            required: true,
+            unique: true
+        },
         email: {
             type: String,
             required: [true, 'Email is required'],
@@ -65,6 +70,9 @@ const userSchema = new mongoose.Schema(
         timestamps: true,
     }
 );
+
+userSchema.index({ googleId: 1 });
+userSchema.index({ email: 1 });
 
 const User = mongoose.model("User", userSchema);
 
