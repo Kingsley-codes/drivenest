@@ -33,10 +33,10 @@ app.prepare().then(async () => {
     configurePassportStrategies();
 
     // Middleware
-    server.use(cookieParser());
-    server.use(express.json());
-    server.use(express.urlencoded({ extended: true }));
-    server.use(passport.initialize());
+    server.use("/api", cookieParser());
+    server.use("/api", express.json());
+    server.use("/api", express.urlencoded({ extended: true }));
+    server.use("/api", passport.initialize());
 
 
     // ===== FIX 1: CSP & Helmet Configuration =====
@@ -53,7 +53,7 @@ app.prepare().then(async () => {
     //     })
     // );
 
-    server.use(
+    server.use("/api",
         helmet({
             contentSecurityPolicy: {
                 directives: {
