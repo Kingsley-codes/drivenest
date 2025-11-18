@@ -23,12 +23,7 @@ const configurePassportStrategies = () => {
             let user = await User.findOne({ googleId: profile.id });
 
             if (user) {
-                // Add redirect path as temporary property
-                const userWithRedirect = {
-                    ...user.toObject(),
-                    _redirectPath: req.cookies.oauth_redirect || '/'
-                };
-                return done(null, userWithRedirect);
+                return done(null, user);
             }
 
             user = await User.findOne({ email: profile.emails[0].value });
@@ -36,12 +31,7 @@ const configurePassportStrategies = () => {
             if (user) {
                 user.googleId = profile.id;
                 await user.save();
-
-                const userWithRedirect = {
-                    ...user.toObject(),
-                    _redirectPath: req.cookies.oauth_redirect || '/'
-                };
-                return done(null, userWithRedirect);
+                return done(null, user);
             }
 
 
@@ -52,13 +42,7 @@ const configurePassportStrategies = () => {
                 googleId: profile.id,
             });
 
-            // Add redirect path as a temporary property
-            const userWithRedirect = {
-                ...newUser.toObject(),
-                _redirectPath: req.cookies.oauth_redirect || '/'
-            };
-
-            return done(null, userWithRedirect);
+            return done(null, newUser);
         } catch (err) {
             return done(err, null);
         }

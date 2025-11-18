@@ -151,9 +151,6 @@ export const verifyEmail = async (req, res, next) => {
         // Remove sensitive data
         user.password = undefined;
 
-        // Get redirect path from query parameter
-        const redirectPath = req.query.redirect || "/";
-
         res.cookie("jwt", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
@@ -161,7 +158,6 @@ export const verifyEmail = async (req, res, next) => {
             maxAge: 30 * 24 * 60 * 60 * 1000 // 7 days
         });
 
-        res.redirect(`/api/auth/verification-success?redirect=${encodeURIComponent(redirectPath)}`);
     } catch (err) {
         res.status(500).json(`
       <h1>Error</h1>
@@ -174,14 +170,6 @@ export const verifyEmail = async (req, res, next) => {
 // OAuth 
 
 export const handleGoogleLogin = (req, res, next) => {
-    // Store redirect path before redirecting to Google
-    res.cookie('oauth_redirect', req.query.redirect || '/', {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 15 * 60 * 1000 // 15 minutes expiration
-    });
-
     passport.authenticate('google', {
         scope: ['profile', 'email'],
         session: false,
@@ -193,20 +181,7 @@ export const googleAuthCallback = (req, res, next) => {
         if (err) return next(err);
         if (!user) return res.redirect("/login");
 
-        // Extract redirect path from user object (passed through passport)
-        const redirectPath = user._redirectPath || "/";
-
-        // Remove the temporary redirect property
-        const userWithoutRedirect = { ...user };
-        delete userWithoutRedirect._redirectPath;
-
-        createSendToken(userWithoutRedirect, 200, req, res); // Set cookie (JWT)
-
-        // Clear the oauth_redirect cookie
-        res.clearCookie("oauth_redirect", { path: "/" });
-
-        // Redirect to the original path
-        res.redirect(redirectPath);
+        createSendToken(useruser, 200, req, res); // Set cookie (JWT)
     })(req, res, next);
 };
 
